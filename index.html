@@ -447,10 +447,11 @@
 
   .affs{border-top:1px solid var(--rule);padding:clamp(36px,5vw,56px) 0 clamp(30px,4vw,44px);text-align:center}
   .affs-lab{display:block;font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--key);margin-bottom:26px}
-  .affs-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:28px clamp(28px,5vw,64px)}
-  .affs-row>*{display:flex;flex-direction:column;align-items:center;gap:12px;text-decoration:none;color:var(--muted);transition:opacity .2s,transform .2s}
+  .affs-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:28px clamp(24px,4.5vw,56px)}
+  .affs-row>*{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:12px;text-decoration:none;color:var(--muted);transition:opacity .2s,transform .2s}
   .affs-row img{width:auto;mix-blend-mode:multiply;flex:none}
-  .affs-row span{font-family:var(--mono);font-size:11px;letter-spacing:.02em;white-space:nowrap}
+  .affs-row .lg{height:48px;display:flex;align-items:center;justify-content:center;font-style:normal}
+  .affs-row span{font-family:var(--mono);font-size:11px;letter-spacing:.02em;line-height:1.45;max-width:170px;text-align:center}
   .affs-row a:hover{transform:translateY(-2px)}
   .affs-row a:hover span{color:var(--ink)}
   footer{border-top:1px solid var(--rule);padding:26px 0 40px;font-size:13px;color:var(--muted)}
@@ -580,7 +581,7 @@
         <span><a href="https://udarimadhu.github.io/">Udari Madhushani Sehwag</a><sup>4</sup>,</span>
         <span><a href="https://furong-huang.com/">Furong Huang</a><sup>∀,1,†</sup></span>
       </p>
-      <p class="affil"><span><sup>1</sup>University of Maryland</span><span><sup>2</sup>University of Washington</span><span><sup>3</sup>University of Illinois Urbana-Champaign</span><span><sup>4</sup>Scale AI</span><span><sup>∀</sup>All Purpose AI</span></p>
+      <p class="affil"><span><sup>1</sup>University of Maryland</span><span><sup>2</sup>University of Washington</span><span><sup>3</sup>University of Illinois at Urbana-Champaign</span><span><sup>4</sup>Scale AI</span><span><sup>∀</sup>All Purpose AI</span></p>
       <p class="note"><sup>*</sup>Equal contribution &nbsp;·&nbsp; <sup>†</sup>Corresponding author: <span class="mono">{lingzhiy, furongh}@umd.edu</span></p>
     </div>
 
@@ -963,11 +964,11 @@
   <section class="affs" aria-label="Affiliations">
     <span class="affs-lab">Affiliations</span>
     <div class="affs-row">
-      <a href="https://umd.edu/" title="University of Maryland"><img src="static/img/aff/umd.webp" alt="University of Maryland" style="height:62px" loading="lazy"><span>University of Maryland</span></a>
-      <a href="https://www.washington.edu/" title="University of Washington"><img src="static/img/aff/uw.png" alt="University of Washington" style="height:34px" loading="lazy"><span>University of Washington</span></a>
-      <a href="https://illinois.edu/" title="University of Illinois Urbana-Champaign"><img src="static/img/aff/uiuc.webp" alt="University of Illinois Urbana-Champaign" style="height:36px" loading="lazy"><span>UIUC</span></a>
-      <a href="https://scale.com/" title="Scale AI"><img src="static/img/aff/scale.svg" alt="Scale AI" style="height:44px" loading="lazy"><span>Scale AI</span></a>
-      <div title="All Purpose AI"><img src="static/img/aff/allpurpose.svg" alt="All Purpose AI" style="height:26px" loading="lazy"><span>All Purpose AI</span></div>
+      <a href="https://umd.edu/" title="University of Maryland"><i class="lg"><img src="static/img/aff/umd.webp" alt="University of Maryland" style="height:36px" loading="lazy"></i><span>University of Maryland</span></a>
+      <a href="https://www.washington.edu/" title="University of Washington"><i class="lg"><img src="static/img/aff/uw.png" alt="University of Washington" style="height:34px" loading="lazy"></i><span>University of Washington</span></a>
+      <a href="https://illinois.edu/" title="University of Illinois at Urbana-Champaign"><i class="lg"><img src="static/img/aff/uiuc.webp" alt="University of Illinois at Urbana-Champaign" style="height:36px" loading="lazy"></i><span>University of Illinois at Urbana-Champaign</span></a>
+      <a href="https://scale.com/" title="Scale AI"><i class="lg"><img src="static/img/aff/scale.svg" alt="Scale AI" style="height:44px" loading="lazy"></i><span>Scale AI</span></a>
+      <div title="All Purpose AI"><i class="lg"><img src="static/img/aff/allpurpose.svg" alt="All Purpose AI" style="height:26px" loading="lazy"></i><span>All Purpose AI</span></div>
     </div>
   </section>
 </main>
