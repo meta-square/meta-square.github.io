@@ -14,7 +14,7 @@
 <link rel="icon" href="static/img/logo.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Besley:ital,wght@1,400;1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Besley:ital,wght@1,400;1,500&family=STIX+Two+Text:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
 <script>document.documentElement.classList.add('js')</script>
 <style>
   *{box-sizing:border-box}
@@ -41,6 +41,7 @@
     --display:'Geist',system-ui,sans-serif;
     --text:'Geist',system-ui,sans-serif;
     --serif:'Besley',Georgia,serif;
+    --math:'STIX Two Text','STIX Two Math','Times New Roman',serif;
     --mono:'Geist Mono',ui-monospace,'SF Mono',Menlo,monospace;
   }
   body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--text);font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
@@ -48,11 +49,13 @@
   a{color:inherit}
   h1,h2,h3,h4{font-family:var(--display);font-weight:500}
   img{max-width:100%;display:block}
+  sup,sub{line-height:0}
   .wrap{max-width:1080px;margin:0 auto;padding:0 clamp(16px,4vw,48px)}
   .m2{font-family:var(--display);font-weight:600;letter-spacing:-0.01em;white-space:nowrap}
   .m2 sup{font-size:.62em;color:var(--key);margin-left:.04em}
-  .math{font-family:var(--serif);font-style:italic;white-space:nowrap}
-  .math sup,.math sub{font-style:normal;font-family:var(--text);font-size:.68em}
+  .math{font-family:var(--math);font-style:italic;font-size:1.08em;white-space:nowrap}
+  .math sup,.math sub{font-size:.7em}
+  .math sub{font-style:normal}
   code,.mono{font-family:var(--mono);font-size:.88em}
   .sc{font-family:var(--mono);font-size:.82em;letter-spacing:.04em;font-weight:600}
 
@@ -71,16 +74,16 @@
   .hero{padding:clamp(28px,5vw,56px) 0 0}
   .eyebrow{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin:0 0 clamp(18px,3vw,28px);display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px}
   .eyebrow .tag{font-size:10.5px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:2px;background:var(--ink);color:var(--bg)}
-  .title-row{display:flex;align-items:center;justify-content:space-between;gap:clamp(24px,4vw,56px)}
+  .title-row{display:flex;align-items:flex-end;justify-content:space-between;gap:clamp(24px,4vw,56px)}
   .bigname{font-size:clamp(72px,13vw,148px);line-height:.86;letter-spacing:-0.055em;margin:0;font-weight:600}
   .bigname sup{font-size:.46em;color:var(--key);letter-spacing:0;margin-left:.03em;display:inline-block;vertical-align:0;position:relative;top:-1.05em}
   html.js .bigname sup{opacity:0;transform:translateY(12px) scale(.6);animation:supin .7s cubic-bezier(.2,.9,.3,1.25) .35s forwards}
   @keyframes supin{to{opacity:1;transform:none}}
-  h1.title{font-size:clamp(25px,3.4vw,40px);line-height:1.12;letter-spacing:-0.025em;margin:clamp(14px,2vw,22px) 0 0;max-width:24ch;text-wrap:balance}
-  h1.title .u{background-image:linear-gradient(var(--neon),var(--neon));background-repeat:no-repeat;background-position:0 88%;background-size:100% .32em}
-  html.js h1.title .u{background-size:0% .32em;animation:uline .9s cubic-bezier(.3,.7,.3,1) .8s forwards}
-  @keyframes uline{to{background-size:100% .32em}}
-  .crest{width:clamp(110px,16vw,190px);height:auto;flex:none;overflow:visible}
+  h1.title{font-size:clamp(25px,3.4vw,40px);line-height:1.15;letter-spacing:-0.025em;margin:clamp(16px,2.2vw,26px) 0 0;text-wrap:balance}
+  h1.title .u{background-image:linear-gradient(var(--key),var(--key));background-repeat:no-repeat;background-position:0 100%;background-size:100% .1em;padding-bottom:.04em}
+  html.js h1.title .u{background-size:0% .1em;animation:uline .9s cubic-bezier(.3,.7,.3,1) .8s forwards}
+  @keyframes uline{to{background-size:100% .1em}}
+  .crest{width:clamp(84px,11vw,138px);height:auto;flex:none;overflow:visible;margin-bottom:4px}
   .crest .o{stroke:var(--ink);stroke-width:5;fill:none}
   .crest .i{fill:var(--ink)}
   .crest .e{fill:var(--key)}
@@ -91,7 +94,7 @@
   @keyframes draw{to{stroke-dashoffset:0}}
   @keyframes pop{to{transform:none}}
   @keyframes float{0%,100%{transform:translate(0,0)}50%{transform:translate(1.5px,-2.5px)}}
-  .hero-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:clamp(28px,5vw,64px);margin-top:clamp(28px,4vw,44px);align-items:start}
+  .hero-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:clamp(28px,5vw,64px);margin-top:clamp(28px,4vw,40px);align-items:start}
   .lead{font-size:clamp(17px,1.6vw,20px);line-height:1.58;margin:0;max-width:56ch}
   .lead b{font-weight:600}
   .reslist{display:flex;flex-direction:column;gap:9px}
@@ -103,18 +106,20 @@
   .btn:hover .arrow{transform:translateX(3px)}
   .btn.soon{border-style:dashed;color:var(--muted);pointer-events:none}
   .btn .soon-lbl{margin-left:auto;font-family:var(--mono);font-size:10.5px;letter-spacing:.02em}
-  .byline{margin-top:clamp(30px,4vw,44px);border-top:1px solid var(--rule);padding-top:16px}
-  .authors{margin:0;font-size:15.5px;line-height:1.75}
+  .byline{margin-top:clamp(22px,3vw,32px);border-top:1px solid var(--rule);padding-top:18px}
+  .authors{margin:0;font-size:clamp(17px,1.6vw,19px);line-height:1.7;font-weight:500}
   .authors span{white-space:nowrap}
-  .authors sup,.affil sup{color:var(--muted);font-size:.7em}
+  .authors sup,.affil sup{color:var(--key);font-size:.66em;font-weight:600;margin-left:1px}
+  .affil span{display:inline-block;white-space:nowrap;margin-right:18px}
   .authors a{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,var(--ink) 25%,transparent);transition:text-decoration-color .15s}
   .authors a:hover{text-decoration-color:var(--key)}
-  .affil{margin:4px 0 0;font-size:13.5px;color:var(--muted)}
-  .note{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+  .affil{margin:6px 0 0;font-size:clamp(14.5px,1.3vw,15.5px);line-height:1.6;color:var(--muted)}
+  .note{font-size:13px;color:var(--muted);margin:8px 0 0}
+  .note sup{color:var(--key);font-weight:600}
 
   /* stats */
   .stats{margin:clamp(18px,2.6vw,28px) 0 0;border-top:2px solid var(--rule);border-bottom:1px solid var(--rule);display:grid;grid-template-columns:repeat(6,1fr)}
-  .stat{padding:22px 14px;border-right:1px solid var(--hair)}
+  .stat{padding:22px 14px}
   .stat:first-child{padding-left:0}
   .stat:last-child{border-right:0;padding-right:0}
   .stat .n{font-family:var(--display);font-size:clamp(30px,3.6vw,44px);font-weight:500;letter-spacing:-0.035em;line-height:1;font-variant-numeric:tabular-nums}
@@ -125,13 +130,13 @@
     .stats{grid-template-columns:repeat(3,1fr)}
     .stat:nth-child(3n+1){padding-left:0}
     .stat:nth-child(3n){border-right:0;padding-right:0}
-    .stat:nth-child(-n+3){border-bottom:1px solid var(--hair)}
   }
 
   /* sections */
   .sec{border-top:1px solid var(--rule);padding:clamp(44px,6vw,76px) 0;scroll-margin-top:60px}
-  .sec>h2{font-size:clamp(28px,3.6vw,44px);line-height:1.05;letter-spacing:-0.03em;margin:0 0 24px;text-wrap:balance}
-  .sec>h2 .sn{font-family:var(--mono);font-size:.38em;font-weight:500;color:var(--key);vertical-align:.6em;margin-right:.9em;letter-spacing:0}
+  .sec>h2,.ov-head>h2{font-size:clamp(28px,3.6vw,44px);line-height:1.05;letter-spacing:-0.03em;margin:0 0 24px;text-wrap:pretty}
+  .h2sup{font-size:.55em;color:var(--key);margin-left:.03em}
+  .sec>h2 .sn,.ov-head>h2 .sn{font-family:var(--mono);font-size:.38em;font-weight:500;color:var(--key);vertical-align:.6em;margin-right:.9em;letter-spacing:0}
   .kicker{font-size:clamp(18px,1.8vw,21px);line-height:1.55;color:var(--muted);max-width:62ch;margin:-6px 0 30px}
   .kicker b{color:var(--ink);font-weight:600}
   .subh{font-family:var(--display);font-weight:500;font-size:22px;letter-spacing:-0.02em;margin:52px 0 10px;display:flex;align-items:baseline;gap:12px}
@@ -140,7 +145,8 @@
   .prose p:last-child{margin-bottom:0}
   .prose b{font-weight:600}
   figure{margin:30px 0 0}
-  figure .frame{background:#fff;border:1px solid var(--hair);padding:clamp(8px,1.5vw,18px)}
+  figure .frame{padding:0}
+  figure .frame img{mix-blend-mode:multiply}
   figcaption{font-size:14px;line-height:1.6;color:var(--muted);margin-top:12px;max-width:none}
   figcaption b{color:var(--ink);font-weight:600}
   .zoomable{cursor:zoom-in}
@@ -148,11 +154,15 @@
   /* overview */
   #overview{border-top:0}
   .abs-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(28px,5vw,60px);align-items:start}
-  .lede{font-size:clamp(25px,2.9vw,38px);line-height:1.2;letter-spacing:-0.02em;font-weight:400;margin:0;font-family:var(--display)}
+  .ov-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px 40px;margin-bottom:26px;flex-wrap:wrap}
+  .ov-head>h2{margin:0}
+  .ov-head .lede{text-align:right;padding-bottom:4px}
+  .ov-body .prose{font-size:17.5px;line-height:1.7}
+  .lede{font-size:clamp(21px,2.3vw,29px);line-height:1.25;letter-spacing:-0.02em;font-weight:400;margin:0;font-family:var(--display)}
   .lede em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--key);letter-spacing:-.01em}
   .lede .q{color:var(--muted)}
-  .contrib{list-style:none;padding:0;margin:34px 0 0;display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--rule)}
-  .contrib li{padding:18px 18px 0 0;font-size:15px;line-height:1.55;border-right:1px solid var(--hair);padding-left:18px}
+  .contrib{list-style:none;padding:0;margin:34px 0 0;display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+  .contrib li{padding:0;font-size:15px;line-height:1.55}
   .contrib li:first-child{padding-left:0}
   .contrib li:last-child{border-right:0}
   .contrib .k{display:block;font-family:var(--mono);font-size:11.5px;color:var(--key);font-weight:600;margin-bottom:6px;letter-spacing:.04em}
@@ -166,34 +176,34 @@
   .reg .ev{font-size:13.5px;line-height:1.5}
   .reg .lim{font-size:13px;line-height:1.5;color:var(--bad);border-top:1px solid var(--hair);padding-top:10px;margin-top:auto}
   .reg .lim::before{content:'✕ ';font-weight:700}
-  .reg.within{background:var(--key-soft)}
   .reg .timeline{height:22px;position:relative;margin:2px 0 2px}
   .reg .timeline i{position:absolute;top:10px;left:0;right:0;height:2px;background:var(--hair)}
   .reg .timeline b{position:absolute;top:5px;width:12px;height:12px;border-radius:50%;background:var(--ink);border:2px solid var(--bg)}
   .reg .timeline span{position:absolute;top:9px;height:4px;background:var(--ink)}
-  .ours-reg{border:1px solid var(--rule);border-top:0;display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1fr) minmax(0,1fr);background:var(--ink);color:var(--bg)}
-  .ours-reg>div{padding:18px 20px;border-right:1px solid rgba(255,255,255,.14)}
+  .ours-reg{border:1px solid var(--rule);border-top:1px solid var(--hair);display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1fr) minmax(0,1fr);background:var(--key-soft);color:var(--ink)}
+  .ours-reg>div{padding:18px 20px;border-right:1px solid rgba(11,122,85,.18)}
   .ours-reg>div:last-child{border-right:0}
-  .ours-reg h4{margin:0;font-size:22px;letter-spacing:-.02em}
-  .ours-reg h4 sup{color:var(--neon)}
-  .ours-reg .lab{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--neon);display:block;margin-bottom:6px}
-  .ours-reg p{margin:0;font-size:14px;line-height:1.55;color:rgba(244,243,238,.85)}
+  .ours-reg h4{margin:0;font-size:24px;letter-spacing:-.02em;font-weight:600}
+  .ours-reg h4 sup{color:var(--key)}
+  .ours-reg .lab{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--key);display:block;margin-bottom:6px}
+  .ours-reg p{margin:0;font-size:14px;line-height:1.55;color:var(--ink)}
   .question{margin:40px 0 0;padding:6px 0 6px 24px;border-left:3px solid var(--key);font-size:clamp(19px,2vw,24px);line-height:1.42;letter-spacing:-.01em;font-family:var(--display);max-width:44ch}
   .question .lab{display:block;font-family:var(--mono);font-size:11px;color:var(--key);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
   .hard3{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,22px);margin-top:32px}
-  .hard3>div{border-top:2px solid var(--ink);padding-top:12px;font-size:14.5px;line-height:1.55}
+  .hard3>div{font-size:14.5px;line-height:1.55}
   .hard3 h4{margin:0 0 6px;font-size:16px}
 
   /* method */
-  .comp{display:grid;grid-template-columns:minmax(0,.42fr) minmax(0,1fr);gap:clamp(20px,4vw,48px);border-top:1px solid var(--rule);padding-top:26px;margin-top:48px}
+  .comp{display:grid;grid-template-columns:minmax(0,.42fr) minmax(0,1fr);gap:clamp(20px,4vw,48px);margin-top:56px}
   .comp>*,.hero-grid>*,.abs-grid>*,.two>*{min-width:0}
   .comp .cl .num{font-family:var(--mono);font-size:12px;color:var(--key);font-weight:600;letter-spacing:.04em}
   .comp .cl h3{font-size:26px;line-height:1.1;letter-spacing:-.025em;margin:6px 0 14px}
   .challenge{font-size:13.5px;line-height:1.55;color:var(--muted);border-left:2px solid var(--avoid);padding-left:12px}
   .challenge b{color:var(--avoid);font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:3px}
-  .eq{font-family:var(--serif);font-style:italic;font-size:clamp(17px,1.8vw,20px);text-align:center;padding:16px 10px;margin:18px 0;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);overflow-x:auto;white-space:nowrap}
-  .eq sup,.eq sub{font-style:normal;font-family:var(--text);font-size:.62em}
-  .eq .kw{font-family:var(--mono);font-style:normal;font-size:.78em;font-weight:600;letter-spacing:.03em}
+  .eq{font-family:var(--math);font-style:italic;font-size:clamp(18px,2vw,22px);text-align:center;padding:12px 10px;margin:14px 0;overflow-x:auto;white-space:nowrap}
+  .eq sup,.eq sub{font-size:.68em}
+  .eq sub,.eq .up{font-style:normal}
+  .eq .kw{font-style:normal;font-variant:small-caps;letter-spacing:.02em}
   .eq .hl{color:var(--key)}
   .channels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:18px 0 0}
   .channels div{border:1px solid var(--hair);padding:10px 12px;font-size:13px;line-height:1.4;background:var(--paper)}
@@ -238,8 +248,10 @@
   @keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
   .run-side{padding:18px 16px;display:flex;flex-direction:column;gap:12px;font-size:13px}
   .run-side .lab{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .run-side .lab .math{text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink)}
+  .layer .math{font-size:14px}
   .ms{border:1px solid var(--ink);padding:9px 11px;display:flex;align-items:center;gap:9px;background:var(--bg)}
-  .ms b{font-family:var(--serif);font-style:italic;font-size:17px}
+  .ms b{font-family:var(--math);font-style:italic;font-weight:400;font-size:19px}
   .ms span{font-size:12px;color:var(--muted)}
   .ms .lock{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--key);font-weight:600}
   .stack{display:flex;flex-direction:column;gap:5px;min-height:150px}
@@ -264,6 +276,7 @@
   .crow .oc{font-family:var(--mono);font-size:13px;display:flex;gap:7px;align-items:center;white-space:nowrap}
   .crow .ok{color:var(--act);font-weight:700}
   .crow .no{color:var(--bad);font-weight:700}
+  .crow .pill{text-align:center}
   .crow .ar{font-family:var(--mono);color:var(--muted);text-align:center}
   .crow .d{font-size:13.5px;line-height:1.45;color:var(--muted)}
   .crow .d b{color:var(--ink);font-weight:500}
@@ -297,9 +310,8 @@
   .entry .f{font-size:13.5px;line-height:1.5}
   .entry .f span{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:1px}
   .entry .ex{font-size:12px;color:var(--muted);border-top:1px solid var(--hair);padding-top:8px;margin-top:auto}
-  .schema{display:flex;flex-wrap:wrap;gap:0;border:1px solid var(--rule);margin:0 0 26px}
-  .schema div{flex:1 1 150px;padding:11px 13px;border-right:1px solid var(--hair);font-size:12.5px;line-height:1.45;color:var(--muted)}
-  .schema div:last-child{border-right:0}
+  .schema{display:flex;flex-wrap:wrap;gap:14px 26px;margin:0 0 26px}
+  .schema div{flex:1 1 130px;font-size:12.5px;line-height:1.45;color:var(--muted)}
   .schema b{display:block;font-family:var(--mono);font-size:11.5px;color:var(--ink);margin-bottom:2px}
 
   /* results */
@@ -323,8 +335,8 @@
   .cbar .v{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10.5px;white-space:nowrap;color:var(--ink)}
   .cbar.ours .v{font-weight:700;color:var(--key);font-size:12px}
   .cbar.human{background:var(--g-human)} .cbar.self{background:var(--g-self)} .cbar.harness{background:var(--g-harness)} .cbar.seed{background:var(--g-seed)} .cbar.ours{background:var(--key)}
-  .xl{display:flex;gap:clamp(4px,1vw,12px);padding:0 4px 0 38px;margin-top:8px}
-  .xl span{flex:1;font-size:11px;color:var(--muted);text-align:center;line-height:1.25;min-width:0;overflow-wrap:break-word}
+  .xl{display:flex;gap:clamp(4px,1vw,12px);padding:0 4px;margin-top:8px}
+  .xl span{flex:1;font-size:11px;color:var(--muted);text-align:center;line-height:1.25;min-width:0;overflow-wrap:normal;word-break:keep-all;white-space:normal}
   .xl span.ours{color:var(--key);font-weight:600}
   .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted);margin-top:14px}
   .legend i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
@@ -419,9 +431,8 @@
   .case figure{margin-top:14px}
 
   /* takeaways */
-  .take{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--rule)}
-  .take>div{padding:20px;border-right:1px solid var(--hair)}
-  .take>div:last-child{border-right:0}
+  .take{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(18px,3vw,36px)}
+  .take>div{padding:0}
   .take .n{font-family:var(--mono);font-size:12px;color:var(--key);font-weight:600}
   .take h4{margin:6px 0 8px;font-size:18px;line-height:1.25;letter-spacing:-.015em}
   .take p{margin:0;font-size:14px;line-height:1.55;color:var(--muted)}
@@ -434,6 +445,14 @@
   .copy{position:absolute;top:12px;right:12px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:12px;padding:6px 12px;cursor:pointer;transition:background .18s,color .18s}
   .copy:hover{background:var(--ink);color:var(--bg)}
 
+  .affs{border-top:1px solid var(--rule);padding:clamp(36px,5vw,56px) 0 clamp(30px,4vw,44px);text-align:center}
+  .affs-lab{display:block;font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--key);margin-bottom:26px}
+  .affs-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:28px clamp(28px,5vw,64px)}
+  .affs-row>*{display:flex;flex-direction:column;align-items:center;gap:12px;text-decoration:none;color:var(--muted);transition:opacity .2s,transform .2s}
+  .affs-row img{width:auto;mix-blend-mode:multiply;flex:none}
+  .affs-row span{font-family:var(--mono);font-size:11px;letter-spacing:.02em;white-space:nowrap}
+  .affs-row a:hover{transform:translateY(-2px)}
+  .affs-row a:hover span{color:var(--ink)}
   footer{border-top:1px solid var(--rule);padding:26px 0 40px;font-size:13px;color:var(--muted)}
   footer .fr{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
@@ -441,6 +460,18 @@
   .lbx{position:fixed;inset:0;background:rgba(16,18,20,.88);z-index:100;display:none;align-items:center;justify-content:center;padding:clamp(10px,3vw,40px);cursor:zoom-out}
   .lbx.on{display:flex;animation:fadein .2s ease}
   .lbx img{max-width:100%;max-height:100%;background:#fff;padding:10px}
+
+  /* ---- unified type scale ---- */
+  :root{--fs-h3:24px;--fs-h4:18px;--fs-body:17px;--fs-sec:15px;--fs-cap:14px}
+  .prose,.ov-body .prose,.kicker,.contrib li,.reg .ev,.hard3>div,.ours-reg p,.take p,.find3 p{font-size:var(--fs-body);line-height:1.65}
+  .kicker{margin:-6px 0 30px;max-width:none}
+  .question{font-size:var(--fs-h3);line-height:1.4;max-width:none}
+  .comp .cl h3,.subh{font-size:var(--fs-h3);line-height:1.2}
+  .reg h4,.take h4,.entry h4{font-size:var(--fs-h4);line-height:1.3}
+  .hard3 h4{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--key);letter-spacing:.04em;text-transform:uppercase;line-height:1.4;margin:0 0 6px}
+  .reg .lim,.challenge,.channels div,.abc>div,.crow .d,.pipe>div,.split>div,.entry .f,.bubble .bt,.schema div,.callout,.run-side{font-size:var(--fs-sec);line-height:1.55}
+  figcaption,.tnote,.legend,.readout,.run-foot{font-size:var(--fs-cap);line-height:1.6}
+  .take p{color:var(--ink)}
 
   /* scroll reveal */
   html.js .rv{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s cubic-bezier(.25,.7,.3,1)}
@@ -461,7 +492,7 @@
     .reg:nth-child(2){border-right:0}
     .reg:nth-child(-n+2){border-bottom:1px solid var(--hair)}
     .ours-reg{grid-template-columns:1fr}
-    .ours-reg>div{border-right:0;border-bottom:1px solid rgba(255,255,255,.14)}
+    .ours-reg>div{border-right:0;border-bottom:1px solid rgba(11,122,85,.18)}
     .run-body{grid-template-columns:1fr}
     .run-main{border-right:0;border-bottom:1px solid var(--hair)}
     .stack{min-height:0}
@@ -475,8 +506,7 @@
     .nav{display:none}
     .crest{width:84px}
     .contrib,.hard3,.find3,.take,.abc,.pipe,.split,.entries,.abl{grid-template-columns:1fr}
-    .contrib li{border-right:0;padding-left:0;border-bottom:1px solid var(--hair);padding-bottom:14px}
-    .take>div{border-right:0;border-bottom:1px solid var(--hair)}
+    .ov-head .lede{text-align:left}
     .pipe>div{border-right:0;border-bottom:1px solid var(--hair)}
     .pipe>div:not(:last-child)::after{content:'↓';right:auto;left:50%;top:auto;bottom:-10px;transform:translateX(-50%);padding:0 4px}
     .regimes{grid-template-columns:1fr}
@@ -499,7 +529,7 @@
     html.js .rv{opacity:1;transform:none;transition:none}
     html.js .bigname sup,html.js .crest .o,html.js .crest .i,html.js .crest .e{animation:none;opacity:1;transform:none;stroke-dashoffset:0}
     .crest .e2{animation:none}
-    html.js h1.title .u{animation:none;background-size:100% .32em}
+    html.js h1.title .u{animation:none;background-size:100% .1em}
     html.js .chart:not(.in) .cbar,html.js .apanel:not(.in) .crow2 .off,html.js .apanel:not(.in) .crow2 .on,html.js .apanel:not(.in) .abar .fl{transform:none}
     html.js .apanel:not(.in) svg.sc-plot .ln{stroke-dashoffset:0}
     *{transition-duration:0s !important;animation-duration:0s !important}
@@ -530,15 +560,28 @@
   <section class="hero">
     <p class="eyebrow"><span class="tag">Preprint · 2026</span><span>Long-horizon agents · Harness evolution · Self-improvement</span></p>
     <div class="title-row">
-      <div>
-        <p class="bigname">Meta<sup>2</sup></p>
-        <h1 class="title">Precomputing <span class="u">Reusable Knowledge</span> for Online Harness Evolution in Long-Horizon Agents</h1>
-      </div>
+      <p class="bigname">Meta<sup>2</sup></p>
       <svg class="crest" viewBox="0 0 64 64" aria-hidden="true">
         <rect class="o" x="5" y="17" width="42" height="42" rx="3"/>
         <rect class="i" x="17" y="29" width="18" height="18" rx="1.5"/>
         <g class="e2"><rect class="e" x="41" y="3" width="20" height="20" rx="2"/></g>
       </svg>
+    </div>
+    <h1 class="title">Precomputing <span class="u">Reusable Knowledge</span> for Online Harness Evolution in Long-Horizon Agents</h1>
+
+    <div class="byline">
+      <p class="authors">
+        <span><a href="https://lingzhiyxp.github.io/">Lingzhi Yuan</a><sup>1,*,†</sup>,</span>
+        <span><a href="https://meta-square.github.io/">Yiguang Cai</a><sup>2,*</sup>,</span>
+        <span><a href="https://attention-is-all-i-need.github.io/">Weize Liu</a><sup>1</sup>,</span>
+        <span><a href="https://www.linkedin.com/in/siqi-yang-37a9b32bb/">Siqi Yang</a><sup>3</sup>,</span>
+        <span><a href="https://feijianghan.com/">Feijiang Han</a><sup>1</sup>,</span>
+        <span><a href="https://noninertialframe.com/">Yongkyun Lee</a><sup>∀</sup>,</span>
+        <span><a href="https://udarimadhu.github.io/">Udari Madhushani Sehwag</a><sup>4</sup>,</span>
+        <span><a href="https://furong-huang.com/">Furong Huang</a><sup>∀,1,†</sup></span>
+      </p>
+      <p class="affil"><span><sup>1</sup>University of Maryland</span><span><sup>2</sup>University of Washington</span><span><sup>3</sup>University of Illinois Urbana-Champaign</span><span><sup>4</sup>Scale AI</span><span><sup>∀</sup>All Purpose AI</span></p>
+      <p class="note"><sup>*</sup>Equal contribution &nbsp;·&nbsp; <sup>†</sup>Corresponding author: <span class="mono">{lingzhiy, furongh}@umd.edu</span></p>
     </div>
 
     <div class="hero-grid">
@@ -563,21 +606,6 @@
       </div>
     </div>
 
-    <div class="byline">
-      <p class="authors">
-        <span><a href="https://lingzhiyxp.github.io/">Lingzhi Yuan</a><sup>1,*</sup>,</span>
-        <span>Yiguang Cai<sup>2,*</sup>,</span>
-        <span>Weize Liu<sup>1</sup>,</span>
-        <span>Siqi Yang<sup>3</sup>,</span>
-        <span>Feijiang Han<sup>1</sup>,</span>
-        <span>Yongkyun Lee<sup>∀</sup>,</span>
-        <span>Udari Madhushani Sehwag<sup>4</sup>,</span>
-        <span><a href="https://furong-huang.com/">Furong Huang</a><sup>∀,1</sup></span>
-      </p>
-      <p class="affil"><sup>1</sup>University of Maryland &nbsp;·&nbsp; <sup>2</sup>University of Washington &nbsp;·&nbsp; <sup>3</sup>University of Illinois Urbana-Champaign &nbsp;·&nbsp; <sup>4</sup>Scale AI &nbsp;·&nbsp; <sup>∀</sup>All Purpose AI</p>
-      <p class="note"><sup>*</sup>Equal contribution. Correspondence: <span class="mono">{lingzhiy, furongh}@umd.edu</span></p>
-    </div>
-
     <div class="stats">
       <div class="stat key rv"><div class="n"><span data-count="81.00" data-dec="2">81.00</span><small>%</small></div><div class="l">Terminal-Bench 2.1<br>GPT-5.6-Terra, mean@5</div></div>
       <div class="stat key rv"><div class="n"><span data-count="44.44" data-dec="2">44.44</span><small>%</small></div><div class="l">DeepSWE 1.1<br>GPT-5.6-Terra, mean@3</div></div>
@@ -590,13 +618,15 @@
 
   <!-- 01 OVERVIEW -->
   <section class="sec" id="overview">
-    <h2><span class="sn">01</span>Overview</h2>
-    <div class="abs-grid">
-      <p class="lede rv">Precompute <em>how</em> to adapt,<br>then adapt <em>locally</em><br><span class="q">as the task unfolds.</span></p>
+    <div class="ov-head">
+      <h2><span class="sn">01</span>Overview</h2>
+      <p class="lede rv">Precompute <em>how</em> to adapt,<br>then adapt <em>locally</em> <span class="q">as the task unfolds.</span></p>
+    </div>
+    <div class="ov-body">
       <div class="prose rv">
         <p>Long-horizon agents act through a <b>harness</b>: prompts, context policy, tools, memory and hooks wrapped around a frozen model. The need to change it often appears <i>during</i> execution. A missing tool shows up when the agent reaches for it; a one-time warning turns out to need a recurring check.</p>
-        <p><b>Offline</b>, <span class="m2">Meta<sup>2</sup></span> learns a textual Meta-Skill <span class="math">ℳ</span> by contrasting training rollouts of the same task agent under three configurations: <b>(A)</b> no evolver, <b>(B)</b> an evolver guided by the current <span class="math">ℳ</span>, and <b>(C)</b> an evolver given privileged verifier information available only during training. These contrasts are aggregated across tasks into guidance on when to evolve, when to hold, and which interventions to avoid.</p>
-        <p><b>Online</b>, an evolver combines the frozen <span class="math">ℳ</span> with emerging trajectory evidence to <span class="sc">KEEP</span> the harness or <span class="sc">EVOLVE</span> it through a task-local edit. The task agent continues in the same environment with its progress intact, and held-out verifier feedback is never available to the evolver.</p>
+        <p><b>Offline</b>, <span class="m2">Meta<sup>2</sup></span> learns a textual Meta-Skill <span class="math">M</span> by contrasting training rollouts of the same task agent under three configurations: <b>(A)</b> no evolver, <b>(B)</b> an evolver guided by the current <span class="math">M</span>, and <b>(C)</b> an evolver given privileged verifier information available only during training. These contrasts are aggregated across tasks into guidance on when to evolve, when to hold, and which interventions to avoid.</p>
+        <p><b>Online</b>, an evolver combines the frozen <span class="math">M</span> with emerging trajectory evidence to <span class="sc">KEEP</span> the harness or <span class="sc">EVOLVE</span> it through a task-local edit. The task agent continues in the same environment with its progress intact, and held-out verifier feedback is never available to the evolver.</p>
       </div>
     </div>
 
@@ -649,8 +679,8 @@
     </div>
     <div class="ours-reg rv">
       <div><span class="lab">Hybrid · ours</span><h4>Meta<sup>2</sup></h4></div>
-      <div><span class="lab">Offline</span><p>Learn reusable evolution knowledge <span class="math">ℳ</span> from training trajectories and verifier feedback. <b style="color:#fff">ℳ</b> is carried across tasks.</p></div>
-      <div><span class="lab">Online · within-run</span><p>Combine <span class="math">ℳ</span> with checkpoint evidence <span class="math">ℐ<sup>(k)</sup></span>, never the outcome. Each edit <span class="math">δ<sup>(k)</sup></span> expires when its run ends.</p></div>
+      <div><span class="lab">Offline</span><p>Learn reusable evolution knowledge <span class="math">M</span> from training trajectories and verifier feedback. <span class="math">M</span> is carried across tasks.</p></div>
+      <div><span class="lab">Online · within-run</span><p>Combine <span class="math">M</span> with checkpoint evidence <span class="math">I<sup>(k)</sup></span>, never the outcome. Each edit <span class="math">δ<sup>(k)</sup></span> expires when its run ends.</p></div>
     </div>
 
     <blockquote class="question rv"><span class="lab">Central question</span>How can lessons from completed training runs guide selective edits during a new run, without held-out verifier feedback, and without letting one task's correction persist into unrelated tasks?</blockquote>
@@ -664,8 +694,8 @@
 
   <!-- 03 METHOD -->
   <section class="sec" id="method">
-    <h2><span class="sn">03</span>Method: optimize the knowledge, not the harness</h2>
-    <p class="kicker">The model, seed harness <span class="math">h<sup>(0)</sup></span>, checkpoint interface and edit channels stay fixed. Offline optimization changes <b>only the evolver's reusable knowledge</b> <span class="math">ℳ</span>.</p>
+    <h2><span class="sn">03</span>Meta<sup class="h2sup">2</sup>: optimize the knowledge, not the harness</h2>
+    <p class="kicker">The model, seed harness <span class="math">h<sup>(0)</sup></span>, checkpoint interface and edit channels stay fixed. Offline optimization changes <b>only the evolver's reusable knowledge</b> <span class="math">M</span>.</p>
 
     <figure class="rv" style="margin-top:6px">
       <div class="frame"><img class="zoomable" src="static/img/method.png" alt="Design of Meta²: offline knowledge learning, online harness evolution and Meta-Skill format" loading="lazy"></div>
@@ -681,7 +711,7 @@
       </div>
       <div class="prose">
         <p>A <b>task agent</b> runs from the seed harness. A separate <b>evolver</b>, instantiated from the same frozen model, observes the run every <span class="math">L</span> steps. It receives the newly accumulated trajectory, permitted read-only workspace observations, and whether its previous edit was loaded, retained or rolled back. It then makes one binary decision:</p>
-        <div class="eq">u<sup>(k)</sup> ∈ { <span class="kw">KEEP</span>, <span class="kw">EVOLVE</span>(δ<sup>(k)</sup>) },&nbsp;&nbsp; δ<sup>(k)</sup> ∼ g( · | h<sup>(k−1)</sup>, ℐ<sup>(k)</sup>, <span class="hl">ℳ</span> )</div>
+        <div class="eq">u<sup>(k)</sup> ∈ { <span class="kw">Keep</span>, <span class="kw">Evolve</span>(δ<sup>(k)</sup>) },&nbsp;&nbsp; δ<sup>(k)</sup> ∼ g( <span class="up">·</span> | h<sup>(k−1)</sup>, I<sup>(k)</sup>, <span class="hl">M</span> )</div>
         <p>When the agent claims completion, a terminal checkpoint also collects workspace state. <span class="sc">KEEP</span> accepts the artifact; <span class="sc">EVOLVE</span> applies a bounded correction and sends the agent back for more work.</p>
         <div class="channels">
           <div><b>notice</b>reaches one worker turn</div>
@@ -700,13 +730,13 @@
       <div class="run-body">
         <div class="run-main">
           <div class="track" id="track"><div class="rail"></div><div class="fill" id="fill"></div><div class="agent" id="agent"><i></i></div></div>
-          <div class="bubble" id="bubble"><div class="bh"><span class="pill">EVOLVER</span></div><div class="bt idle">The task agent starts from the seed harness h<sup>(0)</sup>…</div></div>
+          <div class="bubble" id="bubble"><div class="bh"><span class="pill">EVOLVER</span></div><div class="bt idle">The task agent starts from the seed harness <span class="math">h<sup>(0)</sup></span>…</div></div>
         </div>
         <div class="run-side">
           <span class="lab">Reusable knowledge</span>
-          <div class="ms"><b>ℳ</b><span>Meta-Skill</span><span class="lock">FROZEN</span></div>
-          <span class="lab" id="hlabel">Active harness h<sup>(0)</sup></span>
-          <div class="stack" id="stack"><div class="layer base"><span class="c">SEED</span>NexAU seed harness h<sup>(0)</sup></div></div>
+          <div class="ms"><b>M</b><span>Meta-Skill</span><span class="lock">FROZEN</span></div>
+          <span class="lab" id="hlabel">Active harness <span class="math">h<sup>(0)</sup></span></span>
+          <div class="stack" id="stack"><div class="layer base"><span class="c">SEED</span><span>NexAU seed harness <span class="math">h<sup>(0)</sup></span></span></div></div>
         </div>
       </div>
       <div class="run-foot" id="runfoot">One environment, one continuous trajectory. Edits shape only the remainder of this run.</div>
@@ -744,7 +774,7 @@
       <div class="rv"><b>AGGREGATE · f<sub>agg</sub></b>Merge recurring patterns across tasks and strip instance-specific details.</div>
       <div class="rv"><b>UPDATE · f<sub>upd</sub></b>Add, merge, refine or delete entries relative to the previous Meta-Skill.</div>
     </div>
-    <div class="eq">ℳ<sup>(r)</sup> = f<sub>upd</sub>( ℳ<sup>(r−1)</sup>, f<sub>agg</sub>( f<sub>ref</sub>( 𝒢<sup>(r)</sup>, V<sup>(r)</sup> ) ) )</div>
+    <div class="eq">M<sup>(r)</sup> = f<sub>upd</sub>( M<sup>(r−1)</sup>, f<sub>agg</sub>( f<sub>ref</sub>( G<sup>(r)</sup>, V<sup>(r)</sup> ) ) )</div>
 
     <!-- 3.3 deployment -->
     <div class="comp rv">
@@ -754,9 +784,9 @@
         <div class="challenge"><b>Challenge</b>No held-out verifier confirms whether an edit helped, and an edit motivated by one task may be wrong for another.</div>
       </div>
       <div class="prose">
-        <p>After the final batch, <span class="math">ℳ</span> is frozen. Every run starts from the same seed harness <span class="math">h<sup>(0)</sup></span>. Online decisions, task-specific edits and outcomes are <b>never written back</b> to <span class="math">ℳ</span>; neither held-out verifier feedback nor an LLM-as-a-judge signal is used to update it.</p>
+        <p>After the final batch, <span class="math">M</span> is frozen. Every run starts from the same seed harness <span class="math">h<sup>(0)</sup></span>. Online decisions, task-specific edits and outcomes are <b>never written back</b> to <span class="math">M</span>; neither held-out verifier feedback nor an LLM-as-a-judge signal is used to update it.</p>
         <div class="split">
-          <div class="carry"><h4>CARRIED ACROSS TASKS</h4><ul><li>The frozen Meta-Skill <span class="math">ℳ</span></li><li>Guidance on when to act, hold or avoid</li></ul></div>
+          <div class="carry"><h4>CARRIED ACROSS TASKS</h4><ul><li>The frozen Meta-Skill <span class="math">M</span></li><li>Guidance on when to act, hold or avoid</li></ul></div>
           <div class="drop"><h4>DISCARDED AT RUN END</h4><ul><li>Every harness edit <span class="math">δ<sup>(k)</sup></span></li><li>The evolver's checkpoint conversation</li></ul></div>
         </div>
       </div>
@@ -929,11 +959,22 @@
 }</pre>
     </div>
   </section>
+
+  <section class="affs" aria-label="Affiliations">
+    <span class="affs-lab">Affiliations</span>
+    <div class="affs-row">
+      <a href="https://umd.edu/" title="University of Maryland"><img src="static/img/aff/umd.webp" alt="University of Maryland" style="height:62px" loading="lazy"><span>University of Maryland</span></a>
+      <a href="https://www.washington.edu/" title="University of Washington"><img src="static/img/aff/uw.png" alt="University of Washington" style="height:34px" loading="lazy"><span>University of Washington</span></a>
+      <a href="https://illinois.edu/" title="University of Illinois Urbana-Champaign"><img src="static/img/aff/uiuc.webp" alt="University of Illinois Urbana-Champaign" style="height:36px" loading="lazy"><span>UIUC</span></a>
+      <a href="https://scale.com/" title="Scale AI"><img src="static/img/aff/scale.svg" alt="Scale AI" style="height:44px" loading="lazy"><span>Scale AI</span></a>
+      <div title="All Purpose AI"><img src="static/img/aff/allpurpose.svg" alt="All Purpose AI" style="height:26px" loading="lazy"><span>All Purpose AI</span></div>
+    </div>
+  </section>
 </main>
 
 <footer>
   <div class="wrap fr">
-    <span><span class="m2">Meta<sup>2</sup></span> · University of Maryland · University of Washington · UIUC · Scale AI · All Purpose AI</span>
+    <span><span class="m2">Meta<sup>2</sup></span> · Precomputing Reusable Knowledge for Online Harness Evolution</span>
     <span>Contact: <span class="mono">{lingzhiy, furongh}@umd.edu</span></span>
   </div>
 </footer>
@@ -1020,16 +1061,16 @@
   }
   function addLayer(c){
     nEdits++;
-    var d=document.createElement('div'); d.className='layer new'; d.innerHTML='<span class="c">'+c.ch.toUpperCase()+'</span>'+c.layer; stack.appendChild(d);
-    hlabel.innerHTML='Active harness h<sup>('+nEdits+')</sup>';
+    var d=document.createElement('div'); d.className='layer new'; d.innerHTML='<span class="c">'+c.ch.toUpperCase()+'</span><span>'+c.layer+'</span>'; stack.appendChild(d);
+    hlabel.innerHTML='Active harness <span class="math">h<sup>('+nEdits+')</sup></span>';
   }
   function resetState(){
     clearTimeout(timer); step=0; ci=0; nEdits=0;
     fill.style.width='0'; agent.style.left='0';
     ckEls.forEach(function(e){ e.className=e.className.replace(/ (keep|evolve|now)/g,''); });
     $$('.layer:not(.base)',stack).forEach(function(e){ e.remove(); });
-    hlabel.innerHTML='Active harness h<sup>(0)</sup>';
-    bubble.className='bubble'; bubble.innerHTML='<div class="bh"><span class="pill">EVOLVER</span></div><div class="bt idle">The task agent starts from the seed harness h<sup>(0)</sup>. The evolver checks in after the first step, then every 5 steps.</div>';
+    hlabel.innerHTML='Active harness <span class=\"math\">h<sup>(0)</sup></span>';
+    bubble.className='bubble'; bubble.innerHTML='<div class="bh"><span class="pill">EVOLVER</span></div><div class="bt idle">The task agent starts from the seed harness <span class="math">h<sup>(0)</sup></span>. The evolver checks in after the first step, then every 5 steps.</div>';
     foot.textContent='One environment, one continuous trajectory. Edits shape only the remainder of this run.';
   }
   function tick(){
@@ -1047,8 +1088,8 @@
     if(!playing) return;
     ckEls.forEach(function(e){e.classList.remove('now')});
     $$('.layer:not(.base)',stack).forEach(function(e){ e.classList.add('gone'); });
-    hlabel.innerHTML='Next task: reset to h<sup>(0)</sup>';
-    foot.innerHTML='<b>Run ends.</b> All task-local edits are discarded and the next task starts from h<sup>(0)</sup>. The Meta-Skill ℳ stays frozen: no test-time outcome is written back.';
+    hlabel.innerHTML='Next task: reset to <span class=\"math\">h<sup>(0)</sup></span>';
+    foot.innerHTML='<b>Run ends.</b> All task-local edits are discarded and the next task starts from <span class="math">h<sup>(0)</sup></span>. The Meta-Skill <span class="math">M</span> stays frozen: no test-time outcome is written back.';
     timer=setTimeout(function(){ resetState(); timer=setTimeout(tick, 900); }, 3600);
   }
   function showStatic(){
