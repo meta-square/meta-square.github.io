@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meta²: Precomputing Reusable Knowledge for Online Harness Evolution in Long-Horizon Agents</title>
+<meta name="description" content="Meta² moves offline optimization one level up: instead of optimizing a shared harness, it learns a reusable Meta-Skill for harness evolution and applies it through task-local edits within each run. 81.00% on Terminal-Bench 2.1 and 44.44% on DeepSWE 1.1 with GPT-5.6-Terra.">
+<meta property="og:title" content="Meta²: Precomputing Reusable Knowledge for Online Harness Evolution">
+<meta property="og:description" content="Learn reusable knowledge for harness evolution offline; apply task-local edits within each run online. Best on Terminal-Bench 2.1 (81.00%) and DeepSWE 1.1 (44.44%).">
+<meta property="og:image" content="https://meta-square.github.io/static/img/teaser.png">
+<meta property="og:url" content="https://meta-square.github.io/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://meta-square.github.io/">
+<link rel="icon" href="static/img/logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Besley:ital,wght@1,400;1,500&display=swap" rel="stylesheet">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  :root{
+    --bg:#f4f3ee;
+    --paper:#fbfaf6;
+    --ink:#16181a;
+    --muted:#5d5f58;
+    --faint:#8b8d84;
+    --rule:#16181a;
+    --hair:rgba(22,24,26,0.13);
+    --key:#0b7a55;
+    --key-soft:rgba(11,122,85,0.08);
+    --neon:#25faa1;
+    --act:#11a271;
+    --avoid:#cf5a1e;
+    --hold:#477ec9;
+    --bad:#b23a26;
+    --g-seed:#9a9b90;
+    --g-human:#bdbcae;
+    --g-self:#d2b27a;
+    --g-harness:#8ea3cc;
+    --display:'Geist',system-ui,sans-serif;
+    --text:'Geist',system-ui,sans-serif;
+    --serif:'Besley',Georgia,serif;
+    --mono:'Geist Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  }
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--text);font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  ::selection{background:var(--key);color:#fff}
+  a{color:inherit}
+  h1,h2,h3,h4{font-family:var(--display);font-weight:500}
+  img{max-width:100%;display:block}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 clamp(16px,4vw,48px)}
+  .m2{font-family:var(--display);font-weight:600;letter-spacing:-0.01em;white-space:nowrap}
+  .m2 sup{font-size:.62em;color:var(--key);margin-left:.04em}
+  .math{font-family:var(--serif);font-style:italic;white-space:nowrap}
+  .math sup,.math sub{font-style:normal;font-family:var(--text);font-size:.68em}
+  code,.mono{font-family:var(--mono);font-size:.88em}
+  .sc{font-family:var(--mono);font-size:.82em;letter-spacing:.04em;font-weight:600}
+
+  /* masthead */
+  .top{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--rule)}
+  .top-in{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:12px 0;flex-wrap:wrap;row-gap:8px}
+  .brand{display:flex;align-items:center;gap:9px;font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-0.02em;text-decoration:none}
+  .brand img{width:24px;height:24px}
+  .brand sup{color:var(--key)}
+  .nav{display:flex;align-items:center;flex-wrap:wrap;gap:6px 20px;font-size:14px}
+  .nav a{color:var(--muted);text-decoration:none;padding-bottom:2px;transition:color .15s}
+  .nav a:hover{color:var(--ink)}
+  .nav a.active{color:var(--ink);box-shadow:inset 0 -2px 0 var(--key)}
+
+  /* hero */
+  .hero{padding:clamp(28px,5vw,56px) 0 0}
+  .eyebrow{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin:0 0 clamp(18px,3vw,28px);display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px}
+  .eyebrow .tag{font-size:10.5px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:2px;background:var(--ink);color:var(--bg)}
+  .title-row{display:flex;align-items:center;justify-content:space-between;gap:clamp(24px,4vw,56px)}
+  .bigname{font-size:clamp(72px,13vw,148px);line-height:.86;letter-spacing:-0.055em;margin:0;font-weight:600}
+  .bigname sup{font-size:.46em;color:var(--key);letter-spacing:0;margin-left:.03em;display:inline-block;vertical-align:0;position:relative;top:-1.05em}
+  html.js .bigname sup{opacity:0;transform:translateY(12px) scale(.6);animation:supin .7s cubic-bezier(.2,.9,.3,1.25) .35s forwards}
+  @keyframes supin{to{opacity:1;transform:none}}
+  h1.title{font-size:clamp(25px,3.4vw,40px);line-height:1.12;letter-spacing:-0.025em;margin:clamp(14px,2vw,22px) 0 0;max-width:24ch;text-wrap:balance}
+  h1.title .u{background-image:linear-gradient(var(--neon),var(--neon));background-repeat:no-repeat;background-position:0 88%;background-size:100% .32em}
+  html.js h1.title .u{background-size:0% .32em;animation:uline .9s cubic-bezier(.3,.7,.3,1) .8s forwards}
+  @keyframes uline{to{background-size:100% .32em}}
+  .crest{width:clamp(110px,16vw,190px);height:auto;flex:none;overflow:visible}
+  .crest .o{stroke:var(--ink);stroke-width:5;fill:none}
+  .crest .i{fill:var(--ink)}
+  .crest .e{fill:var(--key)}
+  html.js .crest .o{stroke-dasharray:170;stroke-dashoffset:170;animation:draw 1.1s cubic-bezier(.5,0,.2,1) .1s forwards}
+  html.js .crest .i{transform-origin:26px 38px;transform:scale(0);animation:pop .6s cubic-bezier(.2,.9,.3,1.3) .9s forwards}
+  html.js .crest .e{transform-origin:51px 13px;transform:scale(0) rotate(-90deg);animation:pop .7s cubic-bezier(.2,.9,.3,1.3) 1.2s forwards}
+  .crest .e2{animation:float 5s ease-in-out 2.2s infinite;transform-origin:51px 13px}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  @keyframes pop{to{transform:none}}
+  @keyframes float{0%,100%{transform:translate(0,0)}50%{transform:translate(1.5px,-2.5px)}}
+  .hero-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:clamp(28px,5vw,64px);margin-top:clamp(28px,4vw,44px);align-items:start}
+  .lead{font-size:clamp(17px,1.6vw,20px);line-height:1.58;margin:0;max-width:56ch}
+  .lead b{font-weight:600}
+  .reslist{display:flex;flex-direction:column;gap:9px}
+  .btn{display:flex;align-items:center;gap:12px;border:1px solid var(--rule);padding:12px 15px;text-decoration:none;color:var(--ink);transition:background .18s ease,color .18s ease}
+  .btn .lbl{font-family:var(--display);font-size:15px;font-weight:500}
+  .btn:hover{background:var(--ink);color:var(--bg)}
+  .btn svg{width:18px;height:18px;flex:none;opacity:.8}
+  .btn .arrow{margin-left:auto;font-family:var(--mono);font-size:13px;transition:transform .18s}
+  .btn:hover .arrow{transform:translateX(3px)}
+  .btn.soon{border-style:dashed;color:var(--muted);pointer-events:none}
+  .btn .soon-lbl{margin-left:auto;font-family:var(--mono);font-size:10.5px;letter-spacing:.02em}
+  .byline{margin-top:clamp(30px,4vw,44px);border-top:1px solid var(--rule);padding-top:16px}
+  .authors{margin:0;font-size:15.5px;line-height:1.75}
+  .authors span{white-space:nowrap}
+  .authors sup,.affil sup{color:var(--muted);font-size:.7em}
+  .authors a{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,var(--ink) 25%,transparent);transition:text-decoration-color .15s}
+  .authors a:hover{text-decoration-color:var(--key)}
+  .affil{margin:4px 0 0;font-size:13.5px;color:var(--muted)}
+  .note{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+
+  /* stats */
+  .stats{margin:clamp(18px,2.6vw,28px) 0 0;border-top:2px solid var(--rule);border-bottom:1px solid var(--rule);display:grid;grid-template-columns:repeat(6,1fr)}
+  .stat{padding:22px 14px;border-right:1px solid var(--hair)}
+  .stat:first-child{padding-left:0}
+  .stat:last-child{border-right:0;padding-right:0}
+  .stat .n{font-family:var(--display);font-size:clamp(30px,3.6vw,44px);font-weight:500;letter-spacing:-0.035em;line-height:1;font-variant-numeric:tabular-nums}
+  .stat .n small{font-size:.5em;letter-spacing:0;margin-left:1px;color:var(--muted)}
+  .stat.key .n{color:var(--key)}
+  .stat .l{font-size:12px;line-height:1.45;color:var(--muted);margin-top:9px}
+  @media (max-width:900px){
+    .stats{grid-template-columns:repeat(3,1fr)}
+    .stat:nth-child(3n+1){padding-left:0}
+    .stat:nth-child(3n){border-right:0;padding-right:0}
+    .stat:nth-child(-n+3){border-bottom:1px solid var(--hair)}
+  }
+
+  /* sections */
+  .sec{border-top:1px solid var(--rule);padding:clamp(44px,6vw,76px) 0;scroll-margin-top:60px}
+  .sec>h2{font-size:clamp(28px,3.6vw,44px);line-height:1.05;letter-spacing:-0.03em;margin:0 0 24px;text-wrap:balance}
+  .sec>h2 .sn{font-family:var(--mono);font-size:.38em;font-weight:500;color:var(--key);vertical-align:.6em;margin-right:.9em;letter-spacing:0}
+  .kicker{font-size:clamp(18px,1.8vw,21px);line-height:1.55;color:var(--muted);max-width:62ch;margin:-6px 0 30px}
+  .kicker b{color:var(--ink);font-weight:600}
+  .subh{font-family:var(--display);font-weight:500;font-size:22px;letter-spacing:-0.02em;margin:52px 0 10px;display:flex;align-items:baseline;gap:12px}
+  .subh .rq{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--bg);background:var(--ink);padding:2px 7px;border-radius:2px;letter-spacing:.04em;transform:translateY(-2px)}
+  .prose p{margin:0 0 16px}
+  .prose p:last-child{margin-bottom:0}
+  .prose b{font-weight:600}
+  figure{margin:30px 0 0}
+  figure .frame{background:#fff;border:1px solid var(--hair);padding:clamp(8px,1.5vw,18px)}
+  figcaption{font-size:14px;line-height:1.6;color:var(--muted);margin-top:12px;max-width:none}
+  figcaption b{color:var(--ink);font-weight:600}
+  .zoomable{cursor:zoom-in}
+
+  /* overview */
+  #overview{border-top:0}
+  .abs-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(28px,5vw,60px);align-items:start}
+  .lede{font-size:clamp(25px,2.9vw,38px);line-height:1.2;letter-spacing:-0.02em;font-weight:400;margin:0;font-family:var(--display)}
+  .lede em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--key);letter-spacing:-.01em}
+  .lede .q{color:var(--muted)}
+  .contrib{list-style:none;padding:0;margin:34px 0 0;display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--rule)}
+  .contrib li{padding:18px 18px 0 0;font-size:15px;line-height:1.55;border-right:1px solid var(--hair);padding-left:18px}
+  .contrib li:first-child{padding-left:0}
+  .contrib li:last-child{border-right:0}
+  .contrib .k{display:block;font-family:var(--mono);font-size:11.5px;color:var(--key);font-weight:600;margin-bottom:6px;letter-spacing:.04em}
+
+  /* regimes */
+  .regimes{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--rule);margin-top:6px}
+  .reg{padding:18px 18px 20px;border-right:1px solid var(--hair);display:flex;flex-direction:column;gap:10px;position:relative}
+  .reg:last-child{border-right:0}
+  .reg .when{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.02em}
+  .reg h4{margin:0;font-size:18px;letter-spacing:-0.01em}
+  .reg .ev{font-size:13.5px;line-height:1.5}
+  .reg .lim{font-size:13px;line-height:1.5;color:var(--bad);border-top:1px solid var(--hair);padding-top:10px;margin-top:auto}
+  .reg .lim::before{content:'✕ ';font-weight:700}
+  .reg.within{background:var(--key-soft)}
+  .reg .timeline{height:22px;position:relative;margin:2px 0 2px}
+  .reg .timeline i{position:absolute;top:10px;left:0;right:0;height:2px;background:var(--hair)}
+  .reg .timeline b{position:absolute;top:5px;width:12px;height:12px;border-radius:50%;background:var(--ink);border:2px solid var(--bg)}
+  .reg .timeline span{position:absolute;top:9px;height:4px;background:var(--ink)}
+  .ours-reg{border:1px solid var(--rule);border-top:0;display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1fr) minmax(0,1fr);background:var(--ink);color:var(--bg)}
+  .ours-reg>div{padding:18px 20px;border-right:1px solid rgba(255,255,255,.14)}
+  .ours-reg>div:last-child{border-right:0}
+  .ours-reg h4{margin:0;font-size:22px;letter-spacing:-.02em}
+  .ours-reg h4 sup{color:var(--neon)}
+  .ours-reg .lab{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--neon);display:block;margin-bottom:6px}
+  .ours-reg p{margin:0;font-size:14px;line-height:1.55;color:rgba(244,243,238,.85)}
+  .question{margin:40px 0 0;padding:6px 0 6px 24px;border-left:3px solid var(--key);font-size:clamp(19px,2vw,24px);line-height:1.42;letter-spacing:-.01em;font-family:var(--display);max-width:44ch}
+  .question .lab{display:block;font-family:var(--mono);font-size:11px;color:var(--key);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+  .hard3{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,22px);margin-top:32px}
+  .hard3>div{border-top:2px solid var(--ink);padding-top:12px;font-size:14.5px;line-height:1.55}
+  .hard3 h4{margin:0 0 6px;font-size:16px}
+
+  /* method */
+  .comp{display:grid;grid-template-columns:minmax(0,.42fr) minmax(0,1fr);gap:clamp(20px,4vw,48px);border-top:1px solid var(--rule);padding-top:26px;margin-top:48px}
+  .comp>*,.hero-grid>*,.abs-grid>*,.two>*{min-width:0}
+  .comp .cl .num{font-family:var(--mono);font-size:12px;color:var(--key);font-weight:600;letter-spacing:.04em}
+  .comp .cl h3{font-size:26px;line-height:1.1;letter-spacing:-.025em;margin:6px 0 14px}
+  .challenge{font-size:13.5px;line-height:1.55;color:var(--muted);border-left:2px solid var(--avoid);padding-left:12px}
+  .challenge b{color:var(--avoid);font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:3px}
+  .eq{font-family:var(--serif);font-style:italic;font-size:clamp(17px,1.8vw,20px);text-align:center;padding:16px 10px;margin:18px 0;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);overflow-x:auto;white-space:nowrap}
+  .eq sup,.eq sub{font-style:normal;font-family:var(--text);font-size:.62em}
+  .eq .kw{font-family:var(--mono);font-style:normal;font-size:.78em;font-weight:600;letter-spacing:.03em}
+  .eq .hl{color:var(--key)}
+  .channels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:18px 0 0}
+  .channels div{border:1px solid var(--hair);padding:10px 12px;font-size:13px;line-height:1.4;background:var(--paper)}
+  .channels b{display:block;font-family:var(--mono);font-size:12px;font-weight:600;margin-bottom:3px}
+
+  /* live run demo */
+  .run{border:1px solid var(--rule);background:var(--paper);margin-top:30px}
+  .run-hd{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--hair);flex-wrap:wrap}
+  .run-hd .t{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .run-hd .t b{color:var(--ink);font-weight:600}
+  .run-ctl{display:flex;gap:6px}
+  .run-ctl button{font-family:var(--mono);font-size:12px;border:1px solid var(--rule);background:transparent;color:var(--ink);padding:5px 11px;cursor:pointer;transition:background .15s,color .15s}
+  .run-ctl button:hover{background:var(--ink);color:var(--bg)}
+  .run-body{display:grid;grid-template-columns:minmax(0,1fr) 270px}
+  .run-main{padding:22px 18px 18px;border-right:1px solid var(--hair);min-width:0}
+  .track{position:relative;height:58px;margin:0 6px}
+  .track .rail{position:absolute;left:0;right:0;top:26px;height:3px;background:var(--hair)}
+  .track .fill{position:absolute;left:0;top:26px;height:3px;background:var(--ink);width:0;transition:width .22s linear}
+  .track .ck{position:absolute;top:19px;width:17px;height:17px;margin-left:-8.5px;border-radius:50%;background:var(--paper);border:2px solid var(--faint);transition:all .25s;z-index:2}
+  .track .ck.keep{border-color:var(--hold);background:var(--paper)}
+  .track .ck.evolve{border-color:var(--act);background:var(--act)}
+  .track .ck.term{border-radius:3px}
+  .track .ck.now{box-shadow:0 0 0 6px color-mix(in srgb,var(--key) 20%,transparent)}
+  .track .ckl{position:absolute;top:42px;font-family:var(--mono);font-size:10.5px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
+  .track .agent{position:absolute;top:0;width:24px;height:16px;margin-left:-12px;transition:left .22s linear;z-index:3}
+  .track .agent i{display:block;width:10px;height:10px;margin:0 auto;background:var(--ink);transform:rotate(45deg)}
+  .track .tick{position:absolute;top:23px;width:1px;height:9px;background:var(--hair)}
+  .bubble{margin-top:16px;border:1px solid var(--hair);background:#fff;padding:14px 16px;min-height:118px;transition:border-color .25s}
+  .bubble.evolve{border-color:var(--act)}
+  .bubble.keep{border-color:var(--hold)}
+  .bubble .bh{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px}
+  .pill{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.06em;padding:2px 8px;border-radius:2px;border:1px solid var(--hair);color:var(--muted);white-space:nowrap}
+  .pill.EVOLVE{background:var(--act);border-color:var(--act);color:#fff}
+  .pill.KEEP{background:var(--hold);border-color:var(--hold);color:#fff}
+  .pill.ent{color:var(--ink);border-color:var(--ink)}
+  .pill.act{color:var(--act);border-color:var(--act)}
+  .pill.avoid{color:var(--avoid);border-color:var(--avoid)}
+  .pill.hold{color:var(--hold);border-color:var(--hold)}
+  .bubble .bt{font-size:14.5px;line-height:1.55;font-family:var(--serif);font-style:italic}
+  .bubble .bt.idle{font-family:var(--text);font-style:normal;color:var(--muted)}
+  html.js .bubble .bt.fresh{animation:fadein .4s ease}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .run-side{padding:18px 16px;display:flex;flex-direction:column;gap:12px;font-size:13px}
+  .run-side .lab{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .ms{border:1px solid var(--ink);padding:9px 11px;display:flex;align-items:center;gap:9px;background:var(--bg)}
+  .ms b{font-family:var(--serif);font-style:italic;font-size:17px}
+  .ms span{font-size:12px;color:var(--muted)}
+  .ms .lock{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--key);font-weight:600}
+  .stack{display:flex;flex-direction:column;gap:5px;min-height:150px}
+  .layer{border:1px solid var(--hair);background:#fff;padding:6px 9px;font-size:12px;line-height:1.35;display:flex;gap:7px;align-items:baseline;transition:opacity .5s,transform .5s}
+  .layer .c{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--act);white-space:nowrap}
+  .layer.base .c{color:var(--muted)}
+  .layer.new{animation:slidein .45s cubic-bezier(.2,.8,.3,1)}
+  .layer.gone{opacity:0;transform:translateX(16px)}
+  @keyframes slidein{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+  .run-foot{font-size:12px;color:var(--muted);padding:9px 16px;border-top:1px solid var(--hair);line-height:1.5}
+
+  /* contrasts */
+  .abc{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0}
+  .abc>div{border:1px solid var(--hair);padding:11px 12px;background:var(--paper);font-size:13.5px;line-height:1.45}
+  .abc .L{font-family:var(--display);font-weight:600;font-size:24px;line-height:1;display:block;margin-bottom:6px}
+  .abc .C{border-color:var(--ink);background:var(--bg)}
+  .abc .C small{display:block;color:var(--muted);font-size:12px;margin-top:5px}
+  .contrasts{border:1px solid var(--rule);margin-top:6px}
+  .crow{display:grid;grid-template-columns:150px 22px 70px minmax(0,1fr);align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--hair);transition:background .2s}
+  .crow:last-child{border-bottom:0}
+  .crow:hover{background:var(--paper)}
+  .crow .oc{font-family:var(--mono);font-size:13px;display:flex;gap:7px;align-items:center;white-space:nowrap}
+  .crow .ok{color:var(--act);font-weight:700}
+  .crow .no{color:var(--bad);font-weight:700}
+  .crow .ar{font-family:var(--mono);color:var(--muted);text-align:center}
+  .crow .d{font-size:13.5px;line-height:1.45;color:var(--muted)}
+  .crow .d b{color:var(--ink);font-weight:500}
+  .pipe{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:20px;border:1px solid var(--rule)}
+  .pipe>div{padding:14px 14px;border-right:1px solid var(--hair);font-size:13.5px;line-height:1.5;position:relative}
+  .pipe>div:last-child{border-right:0}
+  .pipe b{display:block;font-family:var(--mono);font-size:12px;letter-spacing:.06em;margin-bottom:4px}
+  .pipe>div:not(:last-child)::after{content:'→';position:absolute;right:-9px;top:50%;transform:translateY(-50%);background:var(--bg);font-family:var(--mono);font-size:13px;line-height:1;padding:3px 0;z-index:1}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+  .split>div{border:1px solid var(--hair);padding:14px 16px;font-size:14px;line-height:1.55;background:var(--paper)}
+  .split h4{margin:0 0 6px;font-size:14px;font-family:var(--mono);letter-spacing:.04em;font-weight:600}
+  .split .carry h4{color:var(--key)}
+  .split .drop h4{color:var(--avoid)}
+  .split ul{margin:0;padding-left:18px}
+
+  /* meta-skill entries */
+  .filters{display:flex;flex-wrap:wrap;gap:7px;margin:4px 0 18px}
+  .fbtn{font-family:var(--mono);font-size:12px;border:1px solid var(--hair);background:transparent;color:var(--muted);padding:6px 12px;cursor:pointer;transition:all .15s;border-radius:2px}
+  .fbtn:hover{color:var(--ink);border-color:var(--ink)}
+  .fbtn.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .fbtn .ct{opacity:.6;margin-left:4px}
+  .entries{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .entry{border:1px solid var(--hair);background:var(--paper);padding:16px 18px;display:flex;flex-direction:column;gap:8px;border-top:3px solid var(--faint);transition:opacity .25s,transform .25s}
+  .entry.act{border-top-color:var(--act)}
+  .entry.avoid{border-top-color:var(--avoid)}
+  .entry.hold{border-top-color:var(--hold)}
+  .entry.hide{display:none}
+  .entry .eh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .entry .eid{font-family:var(--mono);font-size:12.5px;font-weight:600}
+  .entry h4{margin:0;font-size:16.5px;line-height:1.3;letter-spacing:-.01em}
+  .entry .f{font-size:13.5px;line-height:1.5}
+  .entry .f span{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:1px}
+  .entry .ex{font-size:12px;color:var(--muted);border-top:1px solid var(--hair);padding-top:8px;margin-top:auto}
+  .schema{display:flex;flex-wrap:wrap;gap:0;border:1px solid var(--rule);margin:0 0 26px}
+  .schema div{flex:1 1 150px;padding:11px 13px;border-right:1px solid var(--hair);font-size:12.5px;line-height:1.45;color:var(--muted)}
+  .schema div:last-child{border-right:0}
+  .schema b{display:block;font-family:var(--mono);font-size:11.5px;color:var(--ink);margin-bottom:2px}
+
+  /* results */
+  .tabs{display:flex;flex-wrap:wrap;gap:0;border:1px solid var(--rule);width:fit-content;max-width:100%}
+  .tab{font-family:var(--display);font-size:13.5px;border:0;border-right:1px solid var(--hair);background:transparent;color:var(--muted);padding:9px 15px;cursor:pointer;transition:all .15s;text-align:left;line-height:1.3}
+  .tab:last-child{border-right:0}
+  .tab small{display:block;font-family:var(--mono);font-size:10.5px;opacity:.8}
+  .tab:hover{color:var(--ink)}
+  .tab.on{background:var(--ink);color:var(--bg)}
+  .chart{position:relative;margin-top:22px;padding:10px 0 0 34px}
+  .plot{position:relative;height:300px;border-bottom:1px solid var(--rule)}
+  .gl{position:absolute;left:0;right:0;border-top:1px dashed var(--hair)}
+  .gl span{position:absolute;left:-34px;top:-8px;font-family:var(--mono);font-size:10.5px;color:var(--muted);width:28px;text-align:right}
+  .seedline{position:absolute;left:0;right:0;border-top:1.5px dashed var(--g-seed);z-index:2;transition:bottom .6s cubic-bezier(.25,.7,.3,1)}
+  .seedline span{position:absolute;left:-34px;top:-8px;width:30px;text-align:right;font-family:var(--mono);font-size:10px;font-weight:600;color:var(--ink);background:var(--bg)}
+  .cols{position:absolute;inset:0;display:flex;gap:clamp(4px,1vw,12px);align-items:flex-end;padding:0 4px}
+  .col{flex:1;height:100%;position:relative;display:flex;align-items:flex-end;justify-content:center}
+  .cbar{width:100%;max-width:58px;position:relative;transform-origin:bottom;transition:height .7s cubic-bezier(.22,.75,.3,1),background .3s;cursor:default}
+  html.js .chart:not(.in) .cbar{transform:scaleY(0)}
+  html.js .chart .cbar{transition:height .7s cubic-bezier(.22,.75,.3,1),transform .8s cubic-bezier(.22,.75,.3,1);transition-delay:calc(var(--i)*35ms)}
+  .cbar .v{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10.5px;white-space:nowrap;color:var(--ink)}
+  .cbar.ours .v{font-weight:700;color:var(--key);font-size:12px}
+  .cbar.human{background:var(--g-human)} .cbar.self{background:var(--g-self)} .cbar.harness{background:var(--g-harness)} .cbar.seed{background:var(--g-seed)} .cbar.ours{background:var(--key)}
+  .xl{display:flex;gap:clamp(4px,1vw,12px);padding:0 4px 0 38px;margin-top:8px}
+  .xl span{flex:1;font-size:11px;color:var(--muted);text-align:center;line-height:1.25;min-width:0;overflow-wrap:break-word}
+  .xl span.ours{color:var(--key);font-weight:600}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted);margin-top:14px}
+  .legend i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
+  .tablewrap{overflow-x:auto;margin-top:26px;border-top:2px solid var(--rule);border-bottom:1px solid var(--rule)}
+  table.lb{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums;min-width:640px}
+  .lb th{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:right;padding:11px 10px;border-bottom:1px solid var(--rule);white-space:nowrap;cursor:pointer;user-select:none}
+  .lb th:first-child,.lb td:first-child{text-align:left;padding-left:0}
+  .lb th:nth-child(2),.lb td:nth-child(2){text-align:left}
+  .lb th:hover{color:var(--ink)}
+  .lb th.sorted{color:var(--ink)}
+  .lb th .ar{font-size:9px;margin-left:3px}
+  .lb td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--hair);white-space:nowrap}
+  .lb tr:last-child td{border-bottom:0}
+  .lb tr.ours td{background:var(--key-soft);font-weight:600}
+  .lb tr.ours td:first-child{box-shadow:inset 3px 0 0 var(--key);padding-left:10px}
+  .lb .grp{font-size:12px;color:var(--muted)}
+  .lb .grp i{display:inline-block;width:8px;height:8px;margin-right:6px}
+  .lb .pos{color:var(--act)} .lb .neg{color:var(--bad)} .lb .zero{color:var(--muted)}
+  .lb .best{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--key)}
+  .tnote{font-size:12.5px;color:var(--muted);margin-top:10px}
+  .find3{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,22px);margin-top:34px}
+  .find3>div{border-top:2px solid var(--key);padding-top:12px}
+  .find3 .big{font-family:var(--display);font-size:34px;letter-spacing:-.03em;line-height:1;color:var(--key);font-weight:500}
+  .find3 p{margin:8px 0 0;font-size:14px;line-height:1.55}
+
+  /* analysis */
+  .apanel{border:1px solid var(--rule);background:var(--paper);padding:clamp(14px,2.4vw,24px);margin-top:16px}
+  .apanel .ahd{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+  .apanel .ahd .t{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .mini-tabs{display:flex;gap:0;border:1px solid var(--rule)}
+  .mini-tabs button{font-family:var(--mono);font-size:11.5px;border:0;border-right:1px solid var(--hair);background:transparent;color:var(--muted);padding:5px 10px;cursor:pointer}
+  .mini-tabs button:last-child{border-right:0}
+  .mini-tabs button.on{background:var(--ink);color:var(--bg)}
+  .crow2{display:grid;grid-template-columns:130px minmax(0,1fr) 120px;gap:12px;align-items:center;padding:6px 0;font-size:13px}
+  .crow2 .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .crow2.ours .nm{font-weight:700;color:var(--key)}
+  .crow2 .trk{height:18px;display:flex;background:var(--bg)}
+  .crow2 .off,.crow2 .on{height:100%;transform-origin:left;transition:width .6s cubic-bezier(.25,.7,.3,1)}
+  .crow2 .off{background:repeating-linear-gradient(135deg,var(--g-harness) 0 4px,color-mix(in srgb,var(--g-harness) 55%,#fff) 4px 8px)}
+  .crow2 .on{background:var(--g-harness)}
+  .crow2.ours .off{background:repeating-linear-gradient(135deg,var(--key) 0 4px,color-mix(in srgb,var(--key) 45%,#fff) 4px 8px)}
+  .crow2.ours .on{background:var(--key)}
+  .crow2 .val{font-family:var(--mono);font-size:11.5px;color:var(--muted);text-align:right;white-space:nowrap}
+  .crow2 .val b{color:var(--ink);font-weight:600}
+  .crow2.ours .val b{color:var(--key)}
+  html.js .apanel:not(.in) .crow2 .off,html.js .apanel:not(.in) .crow2 .on{transform:scaleX(0)}
+  .crow2 .off,.crow2 .on{transition:width .6s cubic-bezier(.25,.7,.3,1),transform .7s cubic-bezier(.25,.7,.3,1);transition-delay:calc(var(--i)*50ms)}
+  .two{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(20px,3.5vw,40px);align-items:start}
+  svg.sc-plot{width:100%;height:auto;display:block;overflow:visible}
+  svg.sc-plot text{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}
+  svg.sc-plot .ax{stroke:var(--rule);stroke-width:1}
+  svg.sc-plot .grid{stroke:var(--hair);stroke-dasharray:3 3}
+  svg.sc-plot .ln{fill:none;stroke:var(--key);stroke-width:2.2}
+  svg.sc-plot .pt{fill:var(--key);stroke:var(--paper);stroke-width:2;cursor:pointer;transition:r .15s}
+  svg.sc-plot .pt:hover,svg.sc-plot .pt.hv{r:8}
+  svg.sc-plot .plab{fill:var(--key);font-weight:600}
+  svg.sc-plot .base{cursor:pointer}
+  html.js .apanel:not(.in) svg.sc-plot .ln{stroke-dashoffset:var(--len)}
+  svg.sc-plot .ln{stroke-dasharray:var(--len);transition:stroke-dashoffset 1.3s cubic-bezier(.4,0,.2,1) .2s}
+  .readout{font-size:13.5px;line-height:1.55;border-top:1px solid var(--hair);padding-top:12px;margin-top:12px;min-height:66px}
+  .readout b{font-family:var(--mono);font-size:12.5px}
+  .abl{display:grid;grid-template-columns:1fr 1fr;gap:clamp(16px,3vw,32px)}
+  .abl h5{margin:0 0 10px;font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.04em;color:var(--muted);text-transform:uppercase}
+  .abar{display:grid;grid-template-columns:150px minmax(0,1fr) 50px;gap:10px;align-items:center;font-size:12.5px;padding:4px 0}
+  .abar .nm{line-height:1.25;color:var(--muted)}
+  .abar .tr{height:16px;background:var(--bg);position:relative}
+  .abar .fl{position:absolute;left:0;top:0;bottom:0;background:var(--g-harness);transform-origin:left;transition:transform .7s cubic-bezier(.25,.7,.3,1);transition-delay:calc(var(--i)*70ms)}
+  .abar .vv{font-family:var(--mono);font-size:11.5px;text-align:right}
+  .abar.ours .nm{color:var(--key);font-weight:600}
+  .abar.ours .fl{background:var(--key)}
+  .abar.ours .vv{color:var(--key);font-weight:700}
+  .abar.retain .fl{background:repeating-linear-gradient(135deg,var(--avoid) 0 4px,color-mix(in srgb,var(--avoid) 45%,#fff) 4px 8px)}
+  .abar.base .fl{background:var(--g-seed)}
+  html.js .apanel:not(.in) .abar .fl{transform:scaleX(0)}
+  .callout{display:flex;gap:12px;margin-top:18px;padding:12px 14px;border:1px solid var(--hair);background:var(--bg);font-size:14px;line-height:1.55}
+  .callout .ic{font-family:var(--mono);font-weight:700;color:var(--key)}
+
+  /* cases */
+  .ctabs{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--rule)}
+  .ctab{border:0;border-right:1px solid var(--hair);background:transparent;padding:12px 14px;text-align:left;cursor:pointer;font-family:var(--text);color:var(--muted);transition:all .15s;line-height:1.35}
+  .ctab:last-child{border-right:0}
+  .ctab .ty{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.06em;padding:1px 6px;border:1px solid currentColor;border-radius:2px;margin-bottom:6px}
+  .ctab .nm{display:block;font-family:var(--mono);font-size:12.5px;color:var(--ink)}
+  .ctab .bn{display:block;font-size:11.5px}
+  .ctab:hover{background:var(--paper)}
+  .ctab.on{background:var(--ink);color:rgba(244,243,238,.75)}
+  .ctab.on .nm{color:var(--bg)}
+  .ctab.act .ty{color:var(--act)} .ctab.avoid .ty{color:var(--avoid)} .ctab.hold .ty{color:var(--hold)}
+  .ctab.on.act .ty{color:var(--neon)} .ctab.on.avoid .ty{color:#ff9a63} .ctab.on.hold .ty{color:#a0d3ff}
+  .case{display:none}
+  .case.on{display:block;animation:fadein .35s ease}
+  .case figure{margin-top:14px}
+
+  /* takeaways */
+  .take{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--rule)}
+  .take>div{padding:20px;border-right:1px solid var(--hair)}
+  .take>div:last-child{border-right:0}
+  .take .n{font-family:var(--mono);font-size:12px;color:var(--key);font-weight:600}
+  .take h4{margin:6px 0 8px;font-size:18px;line-height:1.25;letter-spacing:-.015em}
+  .take p{margin:0;font-size:14px;line-height:1.55;color:var(--muted)}
+  .principle{margin-top:34px;text-align:center;font-family:var(--display);font-size:clamp(22px,3vw,34px);letter-spacing:-.02em;line-height:1.25;text-wrap:balance}
+  .principle em{font-family:var(--serif);color:var(--key)}
+
+  /* cite */
+  .bibbox{position:relative;border:1px solid var(--rule);background:var(--paper)}
+  .bibbox pre{margin:0;padding:22px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65}
+  .copy{position:absolute;top:12px;right:12px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:12px;padding:6px 12px;cursor:pointer;transition:background .18s,color .18s}
+  .copy:hover{background:var(--ink);color:var(--bg)}
+
+  footer{border-top:1px solid var(--rule);padding:26px 0 40px;font-size:13px;color:var(--muted)}
+  footer .fr{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+  /* lightbox */
+  .lbx{position:fixed;inset:0;background:rgba(16,18,20,.88);z-index:100;display:none;align-items:center;justify-content:center;padding:clamp(10px,3vw,40px);cursor:zoom-out}
+  .lbx.on{display:flex;animation:fadein .2s ease}
+  .lbx img{max-width:100%;max-height:100%;background:#fff;padding:10px}
+
+  /* scroll reveal */
+  html.js .rv{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s cubic-bezier(.25,.7,.3,1)}
+  html.js .rv.rv-in{opacity:1;transform:none}
+  html.js .stat.rv:nth-child(2){transition-delay:.06s}
+  html.js .stat.rv:nth-child(3){transition-delay:.12s}
+  html.js .stat.rv:nth-child(4){transition-delay:.18s}
+  html.js .stat.rv:nth-child(5){transition-delay:.24s}
+  html.js .stat.rv:nth-child(6){transition-delay:.3s}
+  html.js .stagger>.rv:nth-child(2){transition-delay:.08s}
+  html.js .stagger>.rv:nth-child(3){transition-delay:.16s}
+  html.js .stagger>.rv:nth-child(4){transition-delay:.24s}
+  html.js .stagger>.rv:nth-child(5){transition-delay:.32s}
+
+  @media (max-width:900px){
+    .hero-grid,.abs-grid,.comp,.two{grid-template-columns:1fr}
+    .regimes{grid-template-columns:1fr 1fr}
+    .reg:nth-child(2){border-right:0}
+    .reg:nth-child(-n+2){border-bottom:1px solid var(--hair)}
+    .ours-reg{grid-template-columns:1fr}
+    .ours-reg>div{border-right:0;border-bottom:1px solid rgba(255,255,255,.14)}
+    .run-body{grid-template-columns:1fr}
+    .run-main{border-right:0;border-bottom:1px solid var(--hair)}
+    .stack{min-height:0}
+    .ctabs{grid-template-columns:1fr 1fr}
+    .ctab:nth-child(2){border-right:0}
+    .ctab:nth-child(-n+2){border-bottom:1px solid var(--hair)}
+    .channels{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width:680px){
+    body{font-size:16px}
+    .nav{display:none}
+    .crest{width:84px}
+    .contrib,.hard3,.find3,.take,.abc,.pipe,.split,.entries,.abl{grid-template-columns:1fr}
+    .contrib li{border-right:0;padding-left:0;border-bottom:1px solid var(--hair);padding-bottom:14px}
+    .take>div{border-right:0;border-bottom:1px solid var(--hair)}
+    .pipe>div{border-right:0;border-bottom:1px solid var(--hair)}
+    .pipe>div:not(:last-child)::after{content:'↓';right:auto;left:50%;top:auto;bottom:-10px;transform:translateX(-50%);padding:0 4px}
+    .regimes{grid-template-columns:1fr}
+    .reg{border-right:0;border-bottom:1px solid var(--hair)}
+    .crow{grid-template-columns:118px 16px 60px;row-gap:4px}
+    .crow .d{grid-column:1/-1}
+    .crow2{grid-template-columns:96px minmax(0,1fr);row-gap:2px}
+    .crow2 .val{grid-column:2;text-align:left}
+    .abar{grid-template-columns:110px minmax(0,1fr) 44px}
+    .plot{height:250px}
+    .chartscroll{overflow-x:auto;margin-right:-16px;padding-right:16px}
+    .chartscroll .chart{min-width:640px}
+    .cbar .v{font-size:9.5px}
+    .track .ckl{font-size:9px}
+    .eq{font-size:15px}
+    html.js .reslist .btn.rv{opacity:1;transform:none}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    html.js .rv{opacity:1;transform:none;transition:none}
+    html.js .bigname sup,html.js .crest .o,html.js .crest .i,html.js .crest .e{animation:none;opacity:1;transform:none;stroke-dashoffset:0}
+    .crest .e2{animation:none}
+    html.js h1.title .u{animation:none;background-size:100% .32em}
+    html.js .chart:not(.in) .cbar,html.js .apanel:not(.in) .crow2 .off,html.js .apanel:not(.in) .crow2 .on,html.js .apanel:not(.in) .abar .fl{transform:none}
+    html.js .apanel:not(.in) svg.sc-plot .ln{stroke-dashoffset:0}
+    *{transition-duration:0s !important;animation-duration:0s !important}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="#"><img src="static/img/logo.svg" alt=""><span>Meta<sup>2</sup></span></a>
+    <nav class="nav" id="nav">
+      <a href="#overview">Overview</a>
+      <a href="#problem">Problem</a>
+      <a href="#method">Method</a>
+      <a href="#metaskill">Meta-Skill</a>
+      <a href="#results">Results</a>
+      <a href="#analysis">Analysis</a>
+      <a href="#cases">Case studies</a>
+      <a href="#cite">Cite</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- HERO -->
+  <section class="hero">
+    <p class="eyebrow"><span class="tag">Preprint · 2026</span><span>Long-horizon agents · Harness evolution · Self-improvement</span></p>
+    <div class="title-row">
+      <div>
+        <p class="bigname">Meta<sup>2</sup></p>
+        <h1 class="title">Precomputing <span class="u">Reusable Knowledge</span> for Online Harness Evolution in Long-Horizon Agents</h1>
+      </div>
+      <svg class="crest" viewBox="0 0 64 64" aria-hidden="true">
+        <rect class="o" x="5" y="17" width="42" height="42" rx="3"/>
+        <rect class="i" x="17" y="29" width="18" height="18" rx="1.5"/>
+        <g class="e2"><rect class="e" x="41" y="3" width="20" height="20" rx="2"/></g>
+      </svg>
+    </div>
+
+    <div class="hero-grid">
+      <p class="lead">Offline harness optimization ships one shared harness that cannot react to a new run. Online evolution can react, but it reasons about every intervention from scratch. <span class="m2">Meta<sup>2</sup></span> <b>moves offline optimization one level up</b>: instead of optimizing the harness, it learns a reusable <b>Meta-Skill</b> that tells an online evolver <i>when</i> and <i>how</i> to edit the harness, and when to leave it alone. Every edit stays local to the run that motivated it.</p>
+      <div class="reslist">
+        <span class="btn soon rv">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg>
+          <span class="lbl">Paper</span><span class="soon-lbl">arXiv · soon</span>
+        </span>
+        <span class="btn soon rv">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.56-.29-5.25-1.28-5.25-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.7 5.38-5.27 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>
+          <span class="lbl">Code</span><span class="soon-lbl">coming soon</span>
+        </span>
+        <a class="btn rv" href="#results">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+          <span class="lbl">Results</span><span class="arrow">→</span>
+        </a>
+        <a class="btn rv" href="#cite">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 7 4 12l4 5M16 7l4 5-4 5"/></svg>
+          <span class="lbl">BibTeX</span><span class="arrow">→</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="byline">
+      <p class="authors">
+        <span><a href="https://lingzhiyxp.github.io/">Lingzhi Yuan</a><sup>1,*</sup>,</span>
+        <span>Yiguang Cai<sup>2,*</sup>,</span>
+        <span>Weize Liu<sup>1</sup>,</span>
+        <span>Siqi Yang<sup>3</sup>,</span>
+        <span>Feijiang Han<sup>1</sup>,</span>
+        <span>Yongkyun Lee<sup>∀</sup>,</span>
+        <span>Udari Madhushani Sehwag<sup>4</sup>,</span>
+        <span><a href="https://furong-huang.com/">Furong Huang</a><sup>∀,1</sup></span>
+      </p>
+      <p class="affil"><sup>1</sup>University of Maryland &nbsp;·&nbsp; <sup>2</sup>University of Washington &nbsp;·&nbsp; <sup>3</sup>University of Illinois Urbana-Champaign &nbsp;·&nbsp; <sup>4</sup>Scale AI &nbsp;·&nbsp; <sup>∀</sup>All Purpose AI</p>
+      <p class="note"><sup>*</sup>Equal contribution. Correspondence: <span class="mono">{lingzhiy, furongh}@umd.edu</span></p>
+    </div>
+
+    <div class="stats">
+      <div class="stat key rv"><div class="n"><span data-count="81.00" data-dec="2">81.00</span><small>%</small></div><div class="l">Terminal-Bench 2.1<br>GPT-5.6-Terra, mean@5</div></div>
+      <div class="stat key rv"><div class="n"><span data-count="44.44" data-dec="2">44.44</span><small>%</small></div><div class="l">DeepSWE 1.1<br>GPT-5.6-Terra, mean@3</div></div>
+      <div class="stat rv"><div class="n">+<span data-count="14.67" data-dec="2">14.67</span></div><div class="l">pts over the seed harness on Terminal-Bench</div></div>
+      <div class="stat rv"><div class="n">+<span data-count="9.77" data-dec="2">9.77</span></div><div class="l">pts over the seed on DeepSWE, where most evolvers fail to improve</div></div>
+      <div class="stat rv"><div class="n"><span data-count="77.67" data-dec="2">77.67</span><small>%</small></div><div class="l">Terminal-Bench with DeepSeek-V4-Flash, also #1</div></div>
+      <div class="stat rv"><div class="n"><span data-count="0" data-dec="0">0</span></div><div class="l">held-out verifier signals used by the evolver at test time</div></div>
+    </div>
+  </section>
+
+  <!-- 01 OVERVIEW -->
+  <section class="sec" id="overview">
+    <h2><span class="sn">01</span>Overview</h2>
+    <div class="abs-grid">
+      <p class="lede rv">Precompute <em>how</em> to adapt,<br>then adapt <em>locally</em><br><span class="q">as the task unfolds.</span></p>
+      <div class="prose rv">
+        <p>Long-horizon agents act through a <b>harness</b>: prompts, context policy, tools, memory and hooks wrapped around a frozen model. The need to change it often appears <i>during</i> execution. A missing tool shows up when the agent reaches for it; a one-time warning turns out to need a recurring check.</p>
+        <p><b>Offline</b>, <span class="m2">Meta<sup>2</sup></span> learns a textual Meta-Skill <span class="math">ℳ</span> by contrasting training rollouts of the same task agent under three configurations: <b>(A)</b> no evolver, <b>(B)</b> an evolver guided by the current <span class="math">ℳ</span>, and <b>(C)</b> an evolver given privileged verifier information available only during training. These contrasts are aggregated across tasks into guidance on when to evolve, when to hold, and which interventions to avoid.</p>
+        <p><b>Online</b>, an evolver combines the frozen <span class="math">ℳ</span> with emerging trajectory evidence to <span class="sc">KEEP</span> the harness or <span class="sc">EVOLVE</span> it through a task-local edit. The task agent continues in the same environment with its progress intact, and held-out verifier feedback is never available to the evolver.</p>
+      </div>
+    </div>
+
+    <figure class="rv">
+      <div class="frame"><img class="zoomable" src="static/img/teaser.png" alt="Motivation and overview of Meta²: offline evolution, online evolution, and Meta² with headline results" loading="lazy"></div>
+      <figcaption><b>Figure 1.</b> Offline evolution produces a shared harness that may overfit training tasks and cannot adapt to a new run, while online methods are limited in intervention timing, knowledge guidance and verifier availability. <span class="m2">Meta<sup>2</sup></span> learns a reusable Meta-Skill from contrastive training rollouts and freezes it to guide task-local harness evolution at checkpoints, with no verifier feedback at test time.</figcaption>
+    </figure>
+
+    <ul class="contrib stagger">
+      <li class="rv"><span class="k">TAXONOMY</span>Harness evolution organized by <b>edit timing, available evidence and executions affected</b>: offline optimization versus pre-run, within-run and after-run online adaptation.</li>
+      <li class="rv"><span class="k">METHOD</span>A hybrid paradigm that moves offline optimization <b>from a shared harness to reusable evolution knowledge</b>, used to guide task-local edits within a run.</li>
+      <li class="rv"><span class="k">EVIDENCE</span>Performance, cost, component ablations and checkpoint-frequency sensitivity on <b>two long-horizon benchmarks</b>, plus a second backbone on Terminal-Bench.</li>
+    </ul>
+  </section>
+
+  <!-- 02 PROBLEM -->
+  <section class="sec" id="problem">
+    <h2><span class="sn">02</span>When should a harness evolve?</h2>
+    <p class="kicker">An evolver <span class="math">g</span> revises the harness from evidence. Methods differ in <b>when</b> the edit is chosen, <b>what evidence</b> it sees, and <b>which executions</b> it affects. Each regime gives up something.</p>
+
+    <div class="regimes stagger">
+      <div class="reg rv">
+        <span class="when">BEFORE DEPLOYMENT</span>
+        <h4>Offline</h4>
+        <div class="timeline"><i></i><span style="left:0;width:22%"></span><b style="left:22%"></b></div>
+        <div class="ev">Learns from completed training trajectories and verifier outcomes, then ships one harness <span class="math">h<sup>⋆</sup></span> shared by every target task.</div>
+        <div class="lim">Fixed once execution begins; persistent edits may overgeneralize.</div>
+      </div>
+      <div class="reg rv">
+        <span class="when">t = 0</span>
+        <h4>Pre-run</h4>
+        <div class="timeline"><i></i><b style="left:0"></b></div>
+        <div class="ev">Adapts the harness from the target instruction and initial environment before the run starts.</div>
+        <div class="lim">Cannot use evidence that only emerges during execution.</div>
+      </div>
+      <div class="reg within rv">
+        <span class="when">AT CHECKPOINT t<sub>k</sub></span>
+        <h4>Within-run</h4>
+        <div class="timeline"><i></i><b style="left:30%"></b><b style="left:55%"></b><b style="left:80%"></b></div>
+        <div class="ev">Sees the partial trajectory and workspace and edits the harness for the rest of the active run.</div>
+        <div class="lim">No eventual outcome feedback, and existing systems decide without guidance.</div>
+      </div>
+      <div class="reg rv">
+        <span class="when">AFTER THE ATTEMPT</span>
+        <h4>After-run</h4>
+        <div class="timeline"><i></i><b style="left:calc(100% - 12px)"></b></div>
+        <div class="ev">Uses completed trajectories and outcomes to improve the next attempt or later tasks.</div>
+        <div class="lim">Too late for the run that exposed the problem; often needs feedback.</div>
+      </div>
+    </div>
+    <div class="ours-reg rv">
+      <div><span class="lab">Hybrid · ours</span><h4>Meta<sup>2</sup></h4></div>
+      <div><span class="lab">Offline</span><p>Learn reusable evolution knowledge <span class="math">ℳ</span> from training trajectories and verifier feedback. <b style="color:#fff">ℳ</b> is carried across tasks.</p></div>
+      <div><span class="lab">Online · within-run</span><p>Combine <span class="math">ℳ</span> with checkpoint evidence <span class="math">ℐ<sup>(k)</sup></span>, never the outcome. Each edit <span class="math">δ<sup>(k)</sup></span> expires when its run ends.</p></div>
+    </div>
+
+    <blockquote class="question rv"><span class="lab">Central question</span>How can lessons from completed training runs guide selective edits during a new run, without held-out verifier feedback, and without letting one task's correction persist into unrelated tasks?</blockquote>
+
+    <div class="hard3 stagger">
+      <div class="rv"><h4>Partial information</h4>At a checkpoint the evolver sees the trajectory, not the verdict. Acting can rescue a failing run, but it can also derail productive work. Sometimes the right move is to do nothing.</div>
+      <div class="rv"><h4>Coarse supervision</h4>A terminal pass/fail judges a whole sequence of checkpoint decisions at once, not which individual edit helped or harmed.</div>
+      <div class="rv"><h4>Cost of reasoning from scratch</h4>Deliberating over every evolution decision without prior knowledge adds online tokens, latency and money.</div>
+    </div>
+  </section>
+
+  <!-- 03 METHOD -->
+  <section class="sec" id="method">
+    <h2><span class="sn">03</span>Method: optimize the knowledge, not the harness</h2>
+    <p class="kicker">The model, seed harness <span class="math">h<sup>(0)</sup></span>, checkpoint interface and edit channels stay fixed. Offline optimization changes <b>only the evolver's reusable knowledge</b> <span class="math">ℳ</span>.</p>
+
+    <figure class="rv" style="margin-top:6px">
+      <div class="frame"><img class="zoomable" src="static/img/method.png" alt="Design of Meta²: offline knowledge learning, online harness evolution and Meta-Skill format" loading="lazy"></div>
+      <figcaption><b>Figure 2.</b> Offline, rollouts are collected under three conditions and paired into <i>act</i>, <i>avoid</i> and <i>hold</i> contrasts; reflection and cross-task aggregation distill these into reusable lessons that iteratively update the Meta-Skill. Online, the frozen Meta-Skill guides an evolver to keep or modify the harness at checkpoints while the task agent continues along a single trajectory in one environment. Click any figure to enlarge.</figcaption>
+    </figure>
+
+    <!-- 3.1 online -->
+    <div class="comp rv">
+      <div class="cl">
+        <span class="num">3.1 · ONLINE</span>
+        <h3>Checkpoint-based harness evolution</h3>
+        <div class="challenge"><b>Challenge</b>Intervene before an active attempt ends, without resetting its environment, discarding its trajectory, or taking over its actions.</div>
+      </div>
+      <div class="prose">
+        <p>A <b>task agent</b> runs from the seed harness. A separate <b>evolver</b>, instantiated from the same frozen model, observes the run every <span class="math">L</span> steps. It receives the newly accumulated trajectory, permitted read-only workspace observations, and whether its previous edit was loaded, retained or rolled back. It then makes one binary decision:</p>
+        <div class="eq">u<sup>(k)</sup> ∈ { <span class="kw">KEEP</span>, <span class="kw">EVOLVE</span>(δ<sup>(k)</sup>) },&nbsp;&nbsp; δ<sup>(k)</sup> ∼ g( · | h<sup>(k−1)</sup>, ℐ<sup>(k)</sup>, <span class="hl">ℳ</span> )</div>
+        <p>When the agent claims completion, a terminal checkpoint also collects workspace state. <span class="sc">KEEP</span> accepts the artifact; <span class="sc">EVOLVE</span> applies a bounded correction and sends the agent back for more work.</p>
+        <div class="channels">
+          <div><b>notice</b>reaches one worker turn</div>
+          <div><b>instruction</b>persistent standing update</div>
+          <div><b>hook</b>read-only check or probe</div>
+          <div><b>tool</b>adds an action to the harness</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="run rv" id="run">
+      <div class="run-hd">
+        <span class="t"><b>Watch a run</b> · checkpoints every L = 5 steps · illustrative, paraphrasing entries of the learned Terminal-Bench Meta-Skill</span>
+        <div class="run-ctl"><button id="runToggle" type="button">Pause</button><button id="runReset" type="button">Replay</button></div>
+      </div>
+      <div class="run-body">
+        <div class="run-main">
+          <div class="track" id="track"><div class="rail"></div><div class="fill" id="fill"></div><div class="agent" id="agent"><i></i></div></div>
+          <div class="bubble" id="bubble"><div class="bh"><span class="pill">EVOLVER</span></div><div class="bt idle">The task agent starts from the seed harness h<sup>(0)</sup>…</div></div>
+        </div>
+        <div class="run-side">
+          <span class="lab">Reusable knowledge</span>
+          <div class="ms"><b>ℳ</b><span>Meta-Skill</span><span class="lock">FROZEN</span></div>
+          <span class="lab" id="hlabel">Active harness h<sup>(0)</sup></span>
+          <div class="stack" id="stack"><div class="layer base"><span class="c">SEED</span>NexAU seed harness h<sup>(0)</sup></div></div>
+        </div>
+      </div>
+      <div class="run-foot" id="runfoot">One environment, one continuous trajectory. Edits shape only the remainder of this run.</div>
+    </div>
+
+    <!-- 3.2 offline -->
+    <div class="comp rv">
+      <div class="cl">
+        <span class="num">3.2 · OFFLINE</span>
+        <h3>Precomputing reusable evolution knowledge</h3>
+        <div class="challenge"><b>Challenge</b>The verifier scores the whole run, not individual checkpoint decisions. A pass or fail does not reveal which intervention helped, harmed, or was unnecessary.</div>
+      </div>
+      <div class="prose">
+        <p><b>A/B/C rollouts make terminal feedback informative.</b> For each training task, the same agent, model and seed harness run under three conditions:</p>
+        <div class="abc">
+          <div><span class="L">A</span>Task agent alone, no evolver</div>
+          <div><span class="L">B</span>Evolver guided by the current Meta-Skill</div>
+          <div class="C"><span class="L">C</span>Evolver with privileged verifier information<small>Training only. It may not pass verifier details to the agent, and audited leaks are excluded.</small></div>
+        </div>
+        <p>On hard tasks where both A and B fail, C can still produce successes, so B–C contrasts reveal recoveries the current evolver missed. Deterministic pairing of outcomes yields <b>five contrast directions</b>:</p>
+      </div>
+    </div>
+    <div class="contrasts stagger" style="margin-top:14px">
+      <div class="crow rv"><span class="oc">B<span class="ok">✓</span> vs A<span class="no">✗</span></span><span class="ar">→</span><span class="pill act">act</span><span class="d"><b>The current evolver's intervention helped.</b> Evidence for a potentially useful edit.</span></div>
+      <div class="crow rv"><span class="oc">C<span class="ok">✓</span> vs B<span class="no">✗</span></span><span class="ar">→</span><span class="pill act">act</span><span class="d"><b>A recovery the current evolver missed.</b> Verifier-informed evolution found a way through.</span></div>
+      <div class="crow rv"><span class="oc">B<span class="no">✗</span> vs A<span class="ok">✓</span></span><span class="ar">→</span><span class="pill avoid">avoid</span><span class="d"><b>The current intervention hurt</b> a run that would have passed on its own.</span></div>
+      <div class="crow rv"><span class="oc">C<span class="no">✗</span> vs B<span class="ok">✓</span></span><span class="ar">→</span><span class="pill avoid">avoid</span><span class="d"><b>Even verifier-informed evolution caused harm.</b> Rule out that kind of edit.</span></div>
+      <div class="crow rv"><span class="oc">A<span class="ok">✓</span> + B<span class="ok">✓</span></span><span class="ar">→</span><span class="pill hold">hold</span><span class="d"><b>The agent succeeds with or without an evolver.</b> Leave the harness alone.</span></div>
+    </div>
+    <div class="prose" style="margin-top:22px">
+      <p>These contrasts give each candidate lesson a <b>direction</b>, though they do not establish the causal effect of a single checkpoint decision. Training tasks are processed in batches, and three LLM stages turn contrasts into rules:</p>
+    </div>
+    <div class="pipe stagger">
+      <div class="rv"><b>REFLECT · f<sub>ref</sub></b>Inspect each contrastive group with its training-time verifier info; write contrast-grounded candidate entries.</div>
+      <div class="rv"><b>AGGREGATE · f<sub>agg</sub></b>Merge recurring patterns across tasks and strip instance-specific details.</div>
+      <div class="rv"><b>UPDATE · f<sub>upd</sub></b>Add, merge, refine or delete entries relative to the previous Meta-Skill.</div>
+    </div>
+    <div class="eq">ℳ<sup>(r)</sup> = f<sub>upd</sub>( ℳ<sup>(r−1)</sup>, f<sub>agg</sub>( f<sub>ref</sub>( 𝒢<sup>(r)</sup>, V<sup>(r)</sup> ) ) )</div>
+
+    <!-- 3.3 deployment -->
+    <div class="comp rv">
+      <div class="cl">
+        <span class="num">3.3 · DEPLOYMENT</span>
+        <h3>Freeze globally, adapt locally</h3>
+        <div class="challenge"><b>Challenge</b>No held-out verifier confirms whether an edit helped, and an edit motivated by one task may be wrong for another.</div>
+      </div>
+      <div class="prose">
+        <p>After the final batch, <span class="math">ℳ</span> is frozen. Every run starts from the same seed harness <span class="math">h<sup>(0)</sup></span>. Online decisions, task-specific edits and outcomes are <b>never written back</b> to <span class="math">ℳ</span>; neither held-out verifier feedback nor an LLM-as-a-judge signal is used to update it.</p>
+        <div class="split">
+          <div class="carry"><h4>CARRIED ACROSS TASKS</h4><ul><li>The frozen Meta-Skill <span class="math">ℳ</span></li><li>Guidance on when to act, hold or avoid</li></ul></div>
+          <div class="drop"><h4>DISCARDED AT RUN END</h4><ul><li>Every harness edit <span class="math">δ<sup>(k)</sup></span></li><li>The evolver's checkpoint conversation</li></ul></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 META-SKILL -->
+  <section class="sec" id="metaskill">
+    <h2><span class="sn">04</span>Inside the Meta-Skill</h2>
+    <p class="kicker">The Meta-Skill is <b>plain text</b>: a set of entries that link observable execution conditions to decisions. Below are entries from the Meta-Skill learned on Terminal-Bench 2.1 (abridged).</p>
+
+    <div class="schema rv">
+      <div><b>Type</b>act · avoid · hold</div>
+      <div><b>Time point</b>start · during · end</div>
+      <div><b>When to refer</b>the observable situation to match on</div>
+      <div><b>Guidance</b>what to do, or not do</div>
+      <div><b>Why</b>what training runs showed</div>
+      <div><b>Reference examples</b>illustration only</div>
+    </div>
+
+    <div class="filters" id="filters">
+      <button class="fbtn on" data-f="all" type="button">all<span class="ct"></span></button>
+      <button class="fbtn" data-f="act" type="button">act<span class="ct"></span></button>
+      <button class="fbtn" data-f="avoid" type="button">avoid<span class="ct"></span></button>
+      <button class="fbtn" data-f="hold" type="button">hold<span class="ct"></span></button>
+      <button class="fbtn" data-f="start" type="button">@start<span class="ct"></span></button>
+      <button class="fbtn" data-f="during" type="button">@during<span class="ct"></span></button>
+      <button class="fbtn" data-f="end" type="button">@end<span class="ct"></span></button>
+    </div>
+    <div class="entries" id="entries"></div>
+  </section>
+
+  <!-- 05 RESULTS -->
+  <section class="sec" id="results">
+    <h2><span class="sn">05</span>Results</h2>
+    <p class="kicker">Two long-horizon benchmarks, split 1:2 into train/test. Baselines: <b>5 human-designed harnesses</b>, <b>3 self-evolution methods</b> and <b>3 harness-evolution methods</b>. Every evolution method starts from the same NexAU seed harness, and within a backbone setting all agent roles use the same model.</p>
+
+    <div class="tabs" id="benchTabs">
+      <button class="tab on" data-b="tb" type="button">Terminal-Bench 2.1<small>GPT-5.6-Terra · mean@5</small></button>
+      <button class="tab" data-b="ds" type="button">DeepSWE 1.1<small>GPT-5.6-Terra · mean@3</small></button>
+      <button class="tab" data-b="dk" type="button">Terminal-Bench 2.1<small>DeepSeek-V4-Flash · mean@5</small></button>
+    </div>
+
+    <div class="chartscroll"><div class="chart rv" id="chart">
+      <div class="plot" id="plot"></div>
+      <div class="xl" id="xl"></div>
+    </div></div>
+    <div class="legend">
+      <span><i style="background:var(--g-seed)"></i>Seed harness</span>
+      <span><i style="background:var(--g-human)"></i>Human-designed</span>
+      <span><i style="background:var(--g-self)"></i>Self-evolution</span>
+      <span><i style="background:var(--g-harness)"></i>Harness-evolution</span>
+      <span><i style="background:var(--key)"></i>Meta²</span>
+    </div>
+
+    <div class="tablewrap">
+      <table class="lb" id="lb">
+        <thead><tr>
+          <th data-k="name">Method<span class="ar"></span></th>
+          <th data-k="g">Group<span class="ar"></span></th>
+          <th data-k="p">Perf. (%)<span class="ar"></span></th>
+          <th data-k="d">Δ vs seed<span class="ar"></span></th>
+          <th data-k="off">Offline $<span class="ar"></span></th>
+          <th data-k="on">Online $<span class="ar"></span></th>
+          <th data-k="full">Full $<span class="ar"></span></th>
+        </tr></thead>
+        <tbody id="lbbody"></tbody>
+      </table>
+    </div>
+    <p class="tnote">Click a column to sort. Costs are aggregate US dollars over each evaluation, computed from per-call charges reported by a single LiteLLM proxy. Offline = one-time construction; Full = offline + online.</p>
+
+    <div class="find3 stagger">
+      <div class="rv"><div class="big">+14.67 / +9.77</div><p>Gains over the seed on Terminal-Bench / DeepSWE, versus +7.00 / +2.66 for Meta-Harness, the strongest harness-evolution baseline.</p></div>
+      <div class="rv"><div class="big">3 of 6</div><p>evolution baselines fall below the seed on DeepSWE (ReasoningBank, ACE, Continual Harness), and AHE only matches it. <span class="m2">Meta<sup>2</sup></span> keeps a 9.77-point gain, suggesting condition C supplies useful training examples on hard tasks.</p></div>
+      <div class="rv"><div class="big">77.67%</div><p>with DeepSeek-V4-Flash-0731, again the best, +7.67 over the seed. A separate Meta-Skill is built per backbone, so this tests robustness, not zero-shot transfer.</p></div>
+    </div>
+  </section>
+
+  <!-- 06 ANALYSIS -->
+  <section class="sec" id="analysis">
+    <h2><span class="sn">06</span>Analysis</h2>
+
+    <h3 class="subh" style="margin-top:0"><span class="rq">RQ2</span>Is precomputation cost-effective when reused?</h3>
+    <div class="prose"><p>Against the offline harness-evolution methods, <span class="m2">Meta<sup>2</sup></span> achieves <b>higher performance at lower full cost</b> on both benchmarks. Compared with Continual Harness, it pays more up front but less online: $64.72 vs $83.48 on Terminal-Bench and $129.34 vs $155.61 on DeepSWE. The Meta-Skill is built once and reused, so later deployments pay only online cost.</p></div>
+    <div class="apanel rv" id="costPanel">
+      <div class="ahd"><span class="t">Full cost = <span style="display:inline-block;width:18px;height:9px;background:repeating-linear-gradient(135deg,var(--g-harness) 0 3px,#dbe3f2 3px 6px);vertical-align:-1px"></span> offline (one-time) + <span style="display:inline-block;width:18px;height:9px;background:var(--g-harness);vertical-align:-1px"></span> online</span>
+        <div class="mini-tabs" id="costTabs"><button class="on" data-b="tb" type="button">Terminal-Bench</button><button data-b="ds" type="button">DeepSWE</button></div>
+      </div>
+      <div id="costRows"></div>
+    </div>
+    <figure class="rv">
+      <div class="frame"><img class="zoomable" src="static/img/pareto_front.png" alt="Cost–performance Pareto frontier on both benchmarks" loading="lazy"></div>
+      <figcaption><b>Figure 3.</b> Cost–performance Pareto frontier. With the highest observed performance among evaluated methods, <span class="m2">Meta<sup>2</sup></span> lies on the frontier on both benchmarks.</figcaption>
+    </figure>
+
+    <h3 class="subh"><span class="rq">RQ3</span>How often should the evolver check in?</h3>
+    <div class="two">
+      <div class="apanel rv" id="ckPanel" style="margin-top:0">
+        <div class="ahd"><span class="t">Terminal-Bench 2.1 · performance vs online cost (log scale)</span></div>
+        <svg class="sc-plot" id="ckplot" viewBox="0 0 520 330" role="img" aria-label="Checkpoint interval sensitivity plot"></svg>
+        <div class="readout" id="ckread">Hover a point. <b>L = 5</b> gives the best balance: 81.00% at $64.72 online.</div>
+      </div>
+      <div class="prose">
+        <p>A moderate interval of <b>L = 5</b> achieves the highest performance (81.00%) and the best observed performance–cost balance.</p>
+        <p>More frequent checkpoints cost more without helping: <b>L = 3</b> and <b>L = 1</b> cost $74.22 and $83.41 but score 80.33% and 79.00%. Longer intervals save a little (down to $59.10 at <b>L = 11</b>) but performance drops.</p>
+        <p>Across every evaluated <span class="math">L</span>, <span class="m2">Meta<sup>2</sup></span> outperforms every baseline, so its advantage does not depend on the checkpoint schedule.</p>
+      </div>
+    </div>
+
+    <h3 class="subh"><span class="rq">RQ4</span>Which components produce the gains?</h3>
+    <div class="apanel rv" id="ablPanel">
+      <div class="abl" id="abl"></div>
+      <div class="callout"><span class="ic">!</span><span><b>Reset between tasks.</b> Carrying online edits into later tasks instead of resetting to <span class="math">h<sup>(0)</sup></span> lowers performance from 81.00 → 78.33 on Terminal-Bench and 44.44 → 39.11 on DeepSWE. Edits derived from one trajectory encode task-specific interventions that do not transfer.</span></div>
+    </div>
+    <div class="prose" style="margin-top:18px"><p>Adding an online evolver helps on both benchmarks. A self-distilled Meta-Skill helps on Terminal-Bench but slightly hurts DeepSWE. <b>Contrastive</b> Meta-Skill learning improves over self-distillation by <b>4.00</b> and <b>8.88</b> points respectively, with the largest gain on the harder benchmark.</p></div>
+  </section>
+
+  <!-- 07 CASES -->
+  <section class="sec" id="cases">
+    <h2><span class="sn">07</span>Case studies</h2>
+    <p class="kicker">Each case compares two runs of the same task with the same model, seed harness and checkpoint schedule: one evolver <b>without</b> a Meta-Skill and one <b>guided by</b> the learned Meta-Skill. Together they cover all three entry types.</p>
+    <div class="ctabs" id="ctabs">
+      <button class="ctab act on" data-c="0" type="button"><span class="ty">act · early</span><span class="nm">configure-git-webserver</span><span class="bn">Terminal-Bench 2.1</span></button>
+      <button class="ctab act" data-c="1" type="button"><span class="ty">act · mid-run</span><span class="nm">obsidian-link-style</span><span class="bn">DeepSWE 1.1</span></button>
+      <button class="ctab avoid" data-c="2" type="button"><span class="ty">avoid</span><span class="nm">winning-avg-corewars</span><span class="bn">Terminal-Bench 2.1</span></button>
+      <button class="ctab hold" data-c="3" type="button"><span class="ty">hold</span><span class="nm">path-tracing-reverse</span><span class="bn">Terminal-Bench 2.1</span></button>
+    </div>
+    <div class="case on">
+      <figure><div class="frame"><img class="zoomable" src="static/img/case1.png" alt="Case study: configure-git-webserver" loading="lazy"></div>
+      <figcaption><b>Early intervention guided by an act entry.</b> The task requires a Git push to deploy <code>hello.html</code> to a web server on port 8080. Without the Meta-Skill, the evolver asks for validation only "where feasible"; the agent tests in a temporary sandbox and never runs the installer, yet the result is accepted. With the Meta-Skill, entry <b>E-02</b> requires end-to-end evidence: clone, commit, push, then a fresh request that returns "hello world". The agent installs the service and verifies it, and the evolver keeps the harness thereafter. <b>Failed → Passed.</b></figcaption></figure>
+    </div>
+    <div class="case">
+      <figure><div class="frame"><img class="zoomable" src="static/img/case2.png" alt="Case study: obsidian-linter link style" loading="lazy"></div>
+      <figcaption><b>Mid-run intervention guided by an act entry.</b> The task requires a Link Style rule with independently configured <code>linkStyle</code> and <code>imageStyle</code>. At <span class="math">t<sub>3</sub></span> both evolvers issue a notice. Without the Meta-Skill it targets parser issues from failing tests and leaves the image route unchecked, so images are wrongly converted. <b>58/60</b> hidden tests pass. With the Meta-Skill, <b>E-02</b> directs attention to the unverified execution route; the evolver finds the link/image parsing interaction and the agent repairs it. <b>60/60.</b></figcaption></figure>
+    </div>
+    <div class="case">
+      <figure><div class="frame"><img class="zoomable" src="static/img/case3.png" alt="Case study: winning-avg-corewars" loading="lazy"></div>
+      <figcaption><b>Avoiding premature redirection with an avoid entry.</b> By <span class="math">t<sub>3</sub></span> both agents found the bundled Rave warrior, still short of the threshold against stone. Without the Meta-Skill, the evolver redirects exploration toward other warriors; the resulting hybrid ends at 74 wins against stone, one short of 75. With the Meta-Skill, <b>E-06</b> discourages changing route while exploration is still advancing. The evolver keeps the harness, and the agent tunes Rave until all five thresholds are met.</figcaption></figure>
+    </div>
+    <div class="case">
+      <figure><div class="frame"><img class="zoomable" src="static/img/case4.png" alt="Case study: path-tracing-reverse" loading="lazy"></div>
+      <figcaption><b>Preserving the notice budget with a hold entry.</b> In both runs the first command fails because <code>file</code> is unavailable, and the agent switches tools. Without the Meta-Skill, the evolver spends notices at <span class="math">t<sub>1</sub></span> and <span class="math">t<sub>2</sub></span>, exhausting the channel before a substantial output mismatch appears. With the Meta-Skill, <b>E-04</b> discourages a notice about the isolated tool failure, while an instruction guided by <b>E-03</b> requires output comparison. Notices remain for <span class="math">t<sub>4</sub>–t<sub>5</sub></span>, and the agent reproduces the reference output. This illustrates a difference in timing rather than proving that withholding the notice decides success.</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- 08 TAKEAWAYS -->
+  <section class="sec" id="takeaways">
+    <h2><span class="sn">08</span>Takeaways</h2>
+    <div class="take stagger">
+      <div class="rv"><span class="n">01</span><h4>Move offline optimization one level up</h4><p>Learn reusable knowledge about <i>how to evolve</i> a harness rather than a single shared harness. The same knowledge supports different edits in different runs.</p></div>
+      <div class="rv"><span class="n">02</span><h4>Contrasts beat successes</h4><p>A/B/C rollouts turn coarse terminal outcomes into directional act / avoid / hold evidence, including recoveries found only with training-time verifier help.</p></div>
+      <div class="rv"><span class="n">03</span><h4>Keep edits task-local</h4><p>Freeze the Meta-Skill, reset the harness for every task. Carrying edits forward costs 2.67 and 5.33 points on the two benchmarks.</p></div>
+    </div>
+    <p class="principle rv">Precompute <em>how</em> to adapt, then adapt <em>locally</em> as the task unfolds.</p>
+  </section>
+
+  <!-- 09 CITE -->
+  <section class="sec" id="cite">
+    <h2><span class="sn">09</span>Cite</h2>
+    <div class="bibbox">
+      <button class="copy" id="copy" type="button">Copy</button>
+<pre id="bib">@article{yuan2026meta2,
+  title   = {Meta$^2$: Precomputing Reusable Knowledge for Online Harness
+             Evolution in Long-Horizon Agents},
+  author  = {Yuan, Lingzhi and Cai, Yiguang and Liu, Weize and Yang, Siqi and
+             Han, Feijiang and Lee, Yongkyun and Sehwag, Udari Madhushani and
+             Huang, Furong},
+  journal = {arXiv preprint},
+  year    = {2026}
+}</pre>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap fr">
+    <span><span class="m2">Meta<sup>2</sup></span> · University of Maryland · University of Washington · UIUC · Scale AI · All Purpose AI</span>
+    <span>Contact: <span class="mono">{lingzhiy, furongh}@umd.edu</span></span>
+  </div>
+</footer>
+
+<div class="lbx" id="lbx" role="dialog" aria-label="Enlarged figure"><img alt=""></div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function $(s,r){return (r||document).querySelector(s)}
+  function $$(s,r){return [].slice.call((r||document).querySelectorAll(s))}
+  function fmt(v,d){return v==null?'–':v.toFixed(d==null?2:d)}
+
+  /* ---------- data (Tables 1 & 2) ---------- */
+  var G = {seed:'Seed',human:'Human-designed',self:'Self-evolution',harness:'Harness-evolution',ours:'Ours'};
+  var BENCH = {
+    tb:{seed:66.33,min:60,max:85,rows:[
+      ['NexAU Seed','seed',66.33,null,34.09,34.09],['Codex CLI','human',68.33,null,56.59,56.59],['mini-swe-agent','human',67.33,null,41.08,41.08],['Pi agent','human',69.00,null,37.98,37.98],['DeepSeek Harness','human',68.00,null,31.90,31.90],
+      ['ReasoningBank','self',68.00,16.04,55.60,71.64],['ACE','self',71.33,81.55,64.09,145.64],['TF-GRPO','self',74.67,92.55,42.62,135.17],
+      ['AHE','harness',70.67,209.44,38.91,248.35],['Meta-Harness','harness',73.33,160.51,38.34,198.85],['Continual Harness','harness',72.67,28.75,83.48,112.23],
+      ['Meta²','ours',81.00,110.19,64.72,174.91]]},
+    ds:{seed:34.67,min:25,max:50,rows:[
+      ['NexAU Seed','seed',34.67,null,62.67,62.67],['Codex CLI','human',31.11,null,136.53,136.53],['mini-swe-agent','human',29.33,null,68.87,68.87],['Pi agent','human',39.11,null,82.50,82.50],['DeepSeek Harness','human',34.22,null,41.37,41.37],
+      ['ReasoningBank','self',33.33,55.87,85.64,141.51],['ACE','self',32.00,238.10,82.29,320.39],['TF-GRPO','self',36.44,322.50,86.16,408.66],
+      ['AHE','harness',34.67,793.48,69.41,862.89],['Meta-Harness','harness',37.33,781.56,89.19,870.75],['Continual Harness','harness',33.78,46.11,155.61,201.72],
+      ['Meta²','ours',44.44,238.52,129.34,367.86]]},
+    dk:{seed:70.00,min:60,max:80,rows:[
+      ['NexAU Seed','seed',70.00,null,16.83,16.83],
+      ['ReasoningBank','self',69.33,8.08,21.21,29.29],['ACE','self',65.00,58.30,21.56,79.86],['TF-GRPO','self',66.33,37.15,19.86,57.01],
+      ['AHE','harness',71.33,123.51,20.28,143.79],['Meta-Harness','harness',71.00,99.55,19.49,119.04],['Continual Harness','harness',74.67,2.84,35.98,38.82],
+      ['Meta²','ours',77.67,81.90,33.51,115.41]]}
+  };
+
+  /* ---------- scroll reveal ---------- */
+  var io = ('IntersectionObserver' in window) ? new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); if(e.target.classList.contains('rv')) e.target.classList.add('rv-in'); if(e.target.__onIn) e.target.__onIn(); io.unobserve(e.target);} });
+  },{threshold:0.14, rootMargin:'0px 0px -6% 0px'}) : null;
+  function watch(el, cb){ if(cb) el.__onIn=cb; if(io) io.observe(el); else { el.classList.add('in','rv-in'); if(cb) cb(); } }
+  $$('.rv').forEach(function(el){ watch(el); });
+
+  /* ---------- stat count-up ---------- */
+  $$('[data-count]').forEach(function(el){
+    var target=parseFloat(el.dataset.count), dec=+el.dataset.dec;
+    if(reduce || !io) return;
+    el.textContent=(0).toFixed(dec);
+    watch(el.closest('.stat'), function(){
+      var t0=null, dur=1300;
+      function step(t){ if(!t0) t0=t; var p=Math.min(1,(t-t0)/dur); p=1-Math.pow(1-p,3); el.textContent=(target*p).toFixed(dec); if(p<1) requestAnimationFrame(step); }
+      requestAnimationFrame(step);
+    });
+  });
+
+  /* ---------- nav highlight ---------- */
+  var links=$$('#nav a'), secs=links.map(function(a){return $(a.getAttribute('href'))});
+  function onScroll(){ var y=window.scrollY+120, cur=-1; secs.forEach(function(s,i){ if(s && s.offsetTop<=y) cur=i; }); links.forEach(function(a,i){ a.classList.toggle('active', i===cur); }); }
+  window.addEventListener('scroll', onScroll, {passive:true}); onScroll();
+
+  /* ---------- live run demo ---------- */
+  var T=27, CK=[
+    {t:1, d:'EVOLVE', ch:'instruction', id:'E-03', ty:'act', txt:'The obvious first move would overwrite the input. Adding a standing instruction: preserve the original evidence, work only on a copy, and confirm the approach covers the full requirements.', layer:'Preserve originals; work on a copy'},
+    {t:6, d:'KEEP', id:'E-04', ty:'hold', txt:'A single command failed because a utility is unavailable, and the agent is already reformulating. It is recovering on its own, so I will hold and step in only if the same failure recurs.'},
+    {t:11, d:'EVOLVE', ch:'notice', id:'E-09', ty:'act', txt:'The agent’s own comparison reports a mismatch, and it moved on. One notice: isolate the first difference, repair it, and rerun that same comparison.', layer:'Notice: resolve the mismatch (one turn)'},
+    {t:16, d:'KEEP', id:'E-06', ty:'avoid', txt:'One attempt came back empty, but exploration is still advancing with new leads. Per E-06, do not replace the route.'},
+    {t:21, d:'KEEP', id:null, txt:'No entry’s situation applies. Leave the harness unchanged.'},
+    {t:24, d:'EVOLVE', ch:'send-back', id:'E-14', ty:'act', term:true, txt:'The agent claims completion, but only the routine path was validated. Send back: exercise the stated boundary cases, repair any difference, then rerun the routine checks.', layer:'Send-back: test boundary cases'},
+    {t:27, d:'KEEP', id:'E-12', ty:'act', term:true, txt:'Considered E-12: the delivered artifact was run end to end and inspected, so it does not apply. Accept.'}
+  ];
+  var track=$('#track'), fill=$('#fill'), agent=$('#agent'), bubble=$('#bubble'), stack=$('#stack'), hlabel=$('#hlabel'), foot=$('#runfoot'), btnT=$('#runToggle'), btnR=$('#runReset');
+  function px(t){ return (t/T*100)+'%'; }
+  for(var s=0;s<=T;s++){ var tk=document.createElement('div'); tk.className='tick'; tk.style.left=px(s); track.appendChild(tk); }
+  var ckEls=CK.map(function(c,i){
+    var d=document.createElement('div'); d.className='ck'+(c.term?' term':''); d.style.left=px(c.t); track.appendChild(d);
+    var l=document.createElement('div'); l.className='ckl'; l.style.left=px(c.t); l.textContent=c.term?(i===CK.length-1?'✓':'stop'):'t'+(i+1); track.appendChild(l);
+    return d;
+  });
+  var step=0, ci=0, timer=null, playing=true, nEdits=0, started=false;
+  function setBubble(c){
+    bubble.className='bubble '+(c?c.d.toLowerCase():'');
+    var h='<div class="bh">';
+    if(c){ h+='<span class="pill '+c.d+'">'+c.d+(c.ch?' · '+c.ch:'')+'</span>'; h+= c.id?'<span class="pill ent">'+c.id+'</span>':'<span class="pill">no entry</span>'; if(c.ty) h+='<span class="pill '+c.ty+'">'+c.ty+'</span>'; h+='<span class="pill">'+(c.term?'terminal checkpoint':'step '+c.t)+'</span>'; }
+    else h+='<span class="pill">EVOLVER</span>';
+    h+='</div><div class="bt fresh">'+(c?'“'+c.txt+'”':'')+'</div>';
+    bubble.innerHTML=h;
+  }
+  function addLayer(c){
+    nEdits++;
+    var d=document.createElement('div'); d.className='layer new'; d.innerHTML='<span class="c">'+c.ch.toUpperCase()+'</span>'+c.layer; stack.appendChild(d);
+    hlabel.innerHTML='Active harness h<sup>('+nEdits+')</sup>';
+  }
+  function resetState(){
+    clearTimeout(timer); step=0; ci=0; nEdits=0;
+    fill.style.width='0'; agent.style.left='0';
+    ckEls.forEach(function(e){ e.className=e.className.replace(/ (keep|evolve|now)/g,''); });
+    $$('.layer:not(.base)',stack).forEach(function(e){ e.remove(); });
+    hlabel.innerHTML='Active harness h<sup>(0)</sup>';
+    bubble.className='bubble'; bubble.innerHTML='<div class="bh"><span class="pill">EVOLVER</span></div><div class="bt idle">The task agent starts from the seed harness h<sup>(0)</sup>. The evolver checks in after the first step, then every 5 steps.</div>';
+    foot.textContent='One environment, one continuous trajectory. Edits shape only the remainder of this run.';
+  }
+  function tick(){
+    if(!playing) return;
+    if(ci<CK.length && step===CK[ci].t){
+      var c=CK[ci]; ckEls.forEach(function(e){e.classList.remove('now')}); ckEls[ci].classList.add(c.d==='EVOLVE'?'evolve':'keep','now');
+      setBubble(c); if(c.d==='EVOLVE') addLayer(c); ci++;
+      if(ci===CK.length){ timer=setTimeout(endRun, 3200); return; }
+      step++; timer=setTimeout(tick, 2900); return;
+    }
+    fill.style.width=px(step); agent.style.left=px(step);
+    step++; timer=setTimeout(tick, 230);
+  }
+  function endRun(){
+    if(!playing) return;
+    ckEls.forEach(function(e){e.classList.remove('now')});
+    $$('.layer:not(.base)',stack).forEach(function(e){ e.classList.add('gone'); });
+    hlabel.innerHTML='Next task: reset to h<sup>(0)</sup>';
+    foot.innerHTML='<b>Run ends.</b> All task-local edits are discarded and the next task starts from h<sup>(0)</sup>. The Meta-Skill ℳ stays frozen: no test-time outcome is written back.';
+    timer=setTimeout(function(){ resetState(); timer=setTimeout(tick, 900); }, 3600);
+  }
+  function showStatic(){
+    fill.style.width='100%'; agent.style.left='100%';
+    CK.forEach(function(c,i){ ckEls[i].classList.add(c.d==='EVOLVE'?'evolve':'keep'); if(c.d==='EVOLVE') addLayer(c); });
+    setBubble(CK[2]);
+  }
+  btnT.addEventListener('click', function(){ playing=!playing; btnT.textContent=playing?'Pause':'Play'; if(playing){ clearTimeout(timer); timer=setTimeout(tick,150);} else clearTimeout(timer); });
+  btnR.addEventListener('click', function(){ playing=true; btnT.textContent='Pause'; resetState(); timer=setTimeout(tick, 300); });
+  if(reduce){ playing=false; btnT.textContent='Play'; showStatic(); }
+  else watch($('#run'), function(){ if(!started){ started=true; resetState(); timer=setTimeout(tick, 600);} });
+
+  /* ---------- Meta-Skill entries ---------- */
+  var E=[
+    ['E-02','act','start','Externally observable end state named','The statement requires an end state that can only be confirmed by observing the system from outside it, rather than by a file or a build result.','Install a standing instruction that completion requires a fresh observation of that external view, taken before and after the action under the same conditions. Do not let a reachable channel, a running process or a returned status stand in for it.','install-windows-3.11'],
+    ['E-03','act','start','Obvious first move destroys or under-covers','The most direct way into the task would alter something unrecoverable, or cover less than the requirement asks, and the worker has not yet committed to a route.','Install a standing instruction that constrains the method before it acts: what must be preserved or worked on only in copy, how wide the search must be, and which implied behaviour the wording does not spell out. Say nothing about what the answer is.','sqlite-db-truncate · dna-assembly'],
+    ['E-01','avoid','start','Interpretation asserted before inspection','At the first checkpoint the worker has only listed its inputs and has not yet displayed or compared their contents.','Do not use a notice or standing instruction to fix an interpretation of material the worker has not inspected. Constrain how it examines the material; leave the reading to it.','dna-insert'],
+    ['E-07','act','during','Reported success with unchanged observation','An action reports success, and a later direct observation of the very thing it was meant to change shows the same state as before.','Send one notice that the reported success is contradicted by the observation, and require a fresh comparison under stable conditions before building further on the claim.','install-windows-3.11'],
+    ['E-09','act','during','Comparison the worker ran reports a mismatch','A comparison the worker itself ran differs from a reference in membership, count or value, and later turns proceed without resolving it.','Send one notice: isolate the first difference, decide whether a permitted normalisation explains it, repair otherwise, and rerun the same comparison. A narrower passing check does not stand in for the failed one.','regex-chess · dna-assembly'],
+    ['E-11','act','during','Located material bypassed for a surrogate','The worker has already located the material or authority the requirement names, yet is working from something it found separately.','Send one notice to cross-check against what it already located, and state which of the two its result rests on.','mteb-leaderboard · build-pov-ray'],
+    ['E-04','hold','during','Isolated environment failure with visible reformulation','Substantive work has begun; one command fails because the environment rejects a feature or a capability is unavailable, and the next action reformulates the same work.','Hold: do not supply a replacement or spend a notice on that failure.','path-tracing-reverse'],
+    ['E-05','hold','during','Failure output carries its own correction','A command fails and its own output already names the fix, and the next action reads that output instead of repeating the command.','Hold: do not name the fix and do not register a check for it.',''],
+    ['E-06','avoid','during','Route replaced while exploration still advancing','One attempt fails or returns nothing usable, while surrounding turns show the worker varying its approach and following new leads.','Do not redirect the route, replace the approach, or rewrite standing instructions on that evidence.','winning-avg-corewars'],
+    ['E-10','avoid','during','Ambiguity narrowed before the evidence resolves it','The worker’s output shows several candidates from different readings of the requirement, and nothing gathered excludes any of them.','Do not send a notice that favours one candidate.',''],
+    ['E-12','act','end','Completion shown only indirectly','The worker has stopped, and the only validation discards the output, reuses hand-asserted values, or never ran the delivered artifact.','Send it back to run the delivered artifact end to end under ordinary conditions and inspect what comes out.',''],
+    ['E-14','act','end','Stated exceptional behaviour never checked','The requirements call out exceptional or boundary behaviour, and the trace shows validation only along the routine path.','Send it back to exercise those stated cases directly, repair any difference, then rerun the routine validation before accepting.','']
+  ];
+  var host=$('#entries');
+  E.forEach(function(e){
+    var d=document.createElement('article'); d.className='entry '+e[1]; d.dataset.ty=e[1]; d.dataset.tp=e[2];
+    d.innerHTML='<div class="eh"><span class="eid">'+e[0]+'</span><span class="pill '+e[1]+'">'+e[1]+'</span><span class="pill">@'+e[2]+'</span></div><h4>'+e[3]+'</h4>'+
+      '<div class="f"><span>When to refer</span>'+e[4]+'</div><div class="f"><span>Guidance</span>'+e[5]+'</div>'+(e[6]?'<div class="ex">Reference examples: <span class="mono">'+e[6]+'</span></div>':'');
+    host.appendChild(d);
+  });
+  $$('#filters .fbtn').forEach(function(b){
+    var f=b.dataset.f; b.querySelector('.ct').textContent=E.filter(function(e){return f==='all'||e[1]===f||e[2]===f}).length;
+    b.addEventListener('click', function(){
+      $$('#filters .fbtn').forEach(function(x){x.classList.toggle('on',x===b)});
+      $$('.entry',host).forEach(function(el){ el.classList.toggle('hide', !(f==='all'||el.dataset.ty===f||el.dataset.tp===f)); });
+    });
+  });
+
+  /* ---------- results chart + table ---------- */
+  var cur='tb', sortK='p', sortDir=-1;
+  var plot=$('#plot'), xl=$('#xl'), chart=$('#chart');
+  function drawChart(){
+    var B=BENCH[cur], span=B.max-B.min; plot.innerHTML=''; xl.innerHTML='';
+    for(var v=B.min; v<=B.max+1e-9; v+=5){ var g=document.createElement('div'); g.className='gl'; g.style.bottom=((v-B.min)/span*100)+'%'; g.innerHTML='<span>'+v+'</span>'; plot.appendChild(g); }
+    var sl=document.createElement('div'); sl.className='seedline'; sl.style.bottom=((B.seed-B.min)/span*100)+'%'; sl.innerHTML='<span>seed</span>'; sl.title='NexAU seed: '+B.seed.toFixed(2)+'%'; plot.appendChild(sl);
+    var cols=document.createElement('div'); cols.className='cols'; plot.appendChild(cols);
+    B.rows.forEach(function(r,i){
+      var c=document.createElement('div'); c.className='col';
+      var h=Math.max(0,(r[2]-B.min)/span*100);
+      c.innerHTML='<div class="cbar '+r[1]+'" style="height:'+h+'%;--i:'+i+'" title="'+r[0]+': '+r[2].toFixed(2)+'%"><span class="v">'+r[2].toFixed(2)+'</span></div>';
+      cols.appendChild(c);
+      var s=document.createElement('span'); s.textContent=r[0]; if(r[1]==='ours') s.className='ours'; xl.appendChild(s);
+    });
+  }
+  function drawTable(){
+    var B=BENCH[cur], best=Math.max.apply(null,B.rows.map(function(r){return r[2]}));
+    var rows=B.rows.map(function(r){return {name:r[0],g:r[1],p:r[2],d:r[2]-B.seed,off:r[3],on:r[4],full:r[5]}});
+    var order=['seed','human','self','harness','ours'];
+    rows.sort(function(a,b){
+      var x=a[sortK], y=b[sortK];
+      if(sortK==='g'){ x=order.indexOf(x); y=order.indexOf(y); }
+      if(sortK==='name'){ x=x.toLowerCase(); y=y.toLowerCase(); }
+      if(x==null) x=-Infinity; if(y==null) y=-Infinity;
+      return x<y?-sortDir:x>y?sortDir:0;
+    });
+    $('#lbbody').innerHTML=rows.map(function(r){
+      var dc=r.g==='seed'?'zero':(r.d>0.001?'pos':r.d<-0.001?'neg':'zero');
+      var ds=r.g==='seed'?'–':(r.d>0?'+':'')+r.d.toFixed(2);
+      return '<tr class="'+(r.g==='ours'?'ours':'')+'"><td>'+r.name+'</td><td class="grp"><i style="background:var(--'+(r.g==='ours'?'key':'g-'+r.g)+')"></i>'+G[r.g]+'</td><td'+(r.p===best?' class="best"':'')+'>'+r.p.toFixed(2)+'</td><td class="'+dc+'">'+ds+'</td><td>'+fmt(r.off)+'</td><td>'+fmt(r.on)+'</td><td>'+fmt(r.full)+'</td></tr>';
+    }).join('');
+    $$('#lb th').forEach(function(th){ var on=th.dataset.k===sortK; th.classList.toggle('sorted',on); th.querySelector('.ar').textContent=on?(sortDir===-1?'▼':'▲'):''; });
+  }
+  $$('#lb th').forEach(function(th){ th.addEventListener('click', function(){ var k=th.dataset.k; if(sortK===k) sortDir=-sortDir; else { sortK=k; sortDir=(k==='name'||k==='g')?1:-1; } drawTable(); }); });
+  $$('#benchTabs .tab').forEach(function(b){ b.addEventListener('click', function(){
+    $$('#benchTabs .tab').forEach(function(x){x.classList.toggle('on',x===b)}); cur=b.dataset.b;
+    chart.classList.remove('in'); drawChart(); drawTable(); void chart.offsetWidth; requestAnimationFrame(function(){ chart.classList.add('in'); });
+  }); });
+  drawChart(); drawTable(); watch(chart);
+
+  /* ---------- RQ2 cost bars ---------- */
+  var costCur='tb';
+  function drawCost(){
+    var B=BENCH[costCur], rows=B.rows.filter(function(r){return r[1]==='self'||r[1]==='harness'||r[1]==='ours'}).slice().sort(function(a,b){return a[5]-b[5]});
+    var mx=Math.max.apply(null,rows.map(function(r){return r[5]}));
+    $('#costRows').innerHTML=rows.map(function(r,i){
+      return '<div class="crow2 '+(r[1]==='ours'?'ours':'')+'"><span class="nm">'+r[0]+'</span><span class="trk"><span class="off" style="width:'+(r[3]/mx*100)+'%;--i:'+i+'" title="offline $'+r[3].toFixed(2)+'"></span><span class="on" style="width:'+(r[4]/mx*100)+'%;--i:'+i+'" title="online $'+r[4].toFixed(2)+'"></span></span><span class="val"><b>$'+r[5].toFixed(2)+'</b> · '+r[2].toFixed(2)+'%</span></div>';
+    }).join('');
+  }
+  $$('#costTabs button').forEach(function(b){ b.addEventListener('click', function(){ $$('#costTabs button').forEach(function(x){x.classList.toggle('on',x===b)}); costCur=b.dataset.b; drawCost(); }); });
+  drawCost(); watch($('#costPanel'));
+
+  /* ---------- RQ3 checkpoint interval scatter ---------- */
+  (function(){
+    var svg=$('#ckplot'), NS='http://www.w3.org/2000/svg', W=520, H=330, m={l:44,r:18,t:16,b:40};
+    var xmin=Math.log(57), xmax=Math.log(87), ymin=69.5, ymax=84;
+    function X(c){return m.l+(Math.log(c)-xmin)/(xmax-xmin)*(W-m.l-m.r)}
+    function Y(p){return H-m.b-(p-ymin)/(ymax-ymin)*(H-m.t-m.b)}
+    function el(n,a,txt){ var e=document.createElementNS(NS,n); for(var k in a) e.setAttribute(k,a[k]); if(txt!=null) e.textContent=txt; svg.appendChild(e); return e; }
+    [60,65,70,75,80,85].forEach(function(c){ el('line',{x1:X(c),x2:X(c),y1:m.t,y2:H-m.b,'class':'grid'}); el('text',{x:X(c),y:H-m.b+16,'text-anchor':'middle'},'$'+c); });
+    [70,72,74,76,78,80,82,84].forEach(function(p){ el('line',{x1:m.l,x2:W-m.r,y1:Y(p),y2:Y(p),'class':'grid'}); el('text',{x:m.l-8,y:Y(p)+3.5,'text-anchor':'end'},p); });
+    el('line',{x1:m.l,x2:W-m.r,y1:H-m.b,y2:H-m.b,'class':'ax'}); el('line',{x1:m.l,x2:m.l,y1:m.t,y2:H-m.b,'class':'ax'});
+    el('text',{x:(W+m.l)/2,y:H-6,'text-anchor':'middle'},'online cost (USD, log)');
+    var L=[11,9,7,5,3,1], P=[76.33,75.67,79.67,81.00,80.33,79.00], C=[59.10,60.71,62.43,64.72,74.22,83.41];
+    var d=L.map(function(_,i){return (i?'L':'M')+X(C[i]).toFixed(1)+' '+Y(P[i]).toFixed(1)}).join(' ');
+    var path=el('path',{d:d,'class':'ln'}); var len=path.getTotalLength?path.getTotalLength():800; path.style.setProperty('--len',len);
+    var read=$('#ckread');
+    function base(c,p,name,shape,col){
+      var g;
+      if(shape==='d') g=el('rect',{x:X(c)-6,y:Y(p)-6,width:12,height:12,transform:'rotate(45 '+X(c)+' '+Y(p)+')',fill:col,'class':'base'});
+      else g=el('path',{d:'M'+X(c)+' '+(Y(p)-8)+' L'+(X(c)+7.5)+' '+(Y(p)+5)+' L'+(X(c)-7.5)+' '+(Y(p)+5)+'Z',fill:col,'class':'base'});
+      el('text',{x:X(c)+(shape==='d'?-12:12),y:Y(p)+4,'text-anchor':shape==='d'?'end':'start'},name);
+      g.addEventListener('pointerenter',function(){ read.innerHTML='<b>'+name+'</b>: '+p.toFixed(2)+'% at $'+c.toFixed(2)+' online, below every Meta² setting.'; });
+    }
+    base(83.48,72.67,'Continual Harness','d','#173b9b');
+    base(64.09,71.33,'ACE','t','#c2953d');
+    L.forEach(function(l,i){
+      var c=el('circle',{cx:X(C[i]),cy:Y(P[i]),r:l===5?7:5.5,'class':'pt'});
+      var o={11:[-10,4,'end'],9:[10,14,'start'],7:[-10,-8,'end'],5:[0,-13,'middle'],3:[0,-12,'middle'],1:[0,18,'middle']}[l]; el('text',{x:X(C[i])+o[0],y:Y(P[i])+o[1],'text-anchor':o[2],'class':'plab'},'L='+l);
+      c.addEventListener('pointerenter',function(){ $$('.pt',svg).forEach(function(x){x.classList.remove('hv')}); c.classList.add('hv'); read.innerHTML='<b>L = '+l+'</b>: '+P[i].toFixed(2)+'% at $'+C[i].toFixed(2)+' online'+(l===5?' (best performance and balance).':'.'); });
+    });
+    watch($('#ckPanel'));
+  })();
+
+  /* ---------- RQ4 ablation ---------- */
+  (function(){
+    var S=[['Task agent alone','base'],['+ Evolver',''],['+ Self-distilled Meta-Skill',''],['+ Contrastive Meta-Skill (Meta²)','ours'],['+ Retaining edits across tasks','retain']];
+    var D=[{n:'Terminal-Bench 2.1',min:60,max:85,v:[66.33,74.67,77.00,81.00,78.33]},{n:'DeepSWE 1.1',min:25,max:50,v:[34.67,36.44,35.56,44.44,39.11]}];
+    $('#abl').innerHTML=D.map(function(b){
+      return '<div><h5>'+b.n+' · axis '+b.min+'–'+b.max+'</h5>'+S.map(function(s,i){ return '<div class="abar '+s[1]+'"><span class="nm">'+s[0]+'</span><span class="tr"><span class="fl" style="width:'+((b.v[i]-b.min)/(b.max-b.min)*100)+'%;--i:'+i+'"></span></span><span class="vv">'+b.v[i].toFixed(2)+'</span></div>'; }).join('')+'</div>';
+    }).join('');
+    watch($('#ablPanel'));
+  })();
+
+  /* ---------- case tabs ---------- */
+  var cases=$$('.case');
+  $$('#ctabs .ctab').forEach(function(b){ b.addEventListener('click', function(){ $$('#ctabs .ctab').forEach(function(x){x.classList.toggle('on',x===b)}); cases.forEach(function(c,i){ c.classList.toggle('on', i===+b.dataset.c); }); }); });
+
+  /* ---------- lightbox ---------- */
+  var lbx=$('#lbx'), lbi=$('img',lbx);
+  $$('img.zoomable').forEach(function(im){ im.addEventListener('click', function(){ lbi.src=im.src; lbi.alt=im.alt; lbx.classList.add('on'); }); });
+  lbx.addEventListener('click', function(){ lbx.classList.remove('on'); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') lbx.classList.remove('on'); });
+
+  /* ---------- copy bibtex ---------- */
+  var copy=$('#copy'), ct;
+  copy.addEventListener('click', function(){
+    try{ navigator.clipboard.writeText($('#bib').textContent); }catch(e){}
+    copy.textContent='Copied'; clearTimeout(ct); ct=setTimeout(function(){copy.textContent='Copy'},1600);
+  });
+})();
+</script>
+</body>
+</html>
