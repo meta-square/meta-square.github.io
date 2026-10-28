@@ -456,6 +456,10 @@
   .affs-row a:hover span{color:var(--ink)}
   footer{border-top:1px solid var(--rule);padding:26px 0 40px;font-size:13px;color:var(--muted)}
   footer .fr{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  footer .ack{margin:0 0 16px;padding-bottom:16px;border-bottom:1px solid var(--hair);font-size:14px;line-height:1.6}
+  footer .ack b{color:var(--ink);font-weight:600}
+  footer .ack a{color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,var(--ink) 30%,transparent)}
+  footer .ack a:hover{text-decoration-color:var(--key)}
 
   /* lightbox */
   .lbx{position:fixed;inset:0;background:rgba(16,18,20,.88);z-index:100;display:none;align-items:center;justify-content:center;padding:clamp(10px,3vw,40px);cursor:zoom-out}
@@ -972,6 +976,9 @@
 </main>
 
 <footer>
+  <div class="wrap">
+    <p class="ack"><b>Acknowledgment.</b> We thank the authors of <a href="https://agentabstain.github.io/">AgentAbstain</a> for their <a href="https://github.com/AntiQuality/masthead-project-page-template">project page template</a>, which this website builds on.</p>
+  </div>
   <div class="wrap fr">
     <span><span class="m2">Meta<sup>2</sup></span> · Precomputing Reusable Knowledge for Online Harness Evolution</span>
     <span>Contact: <span class="mono">{lingzhiy, furongh}@umd.edu</span></span>
